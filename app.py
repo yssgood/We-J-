@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+import pymysql.cursors
 
 # Initialize Flask
 app = Flask(__name__)

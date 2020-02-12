@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+import pymysql.cursors
 
 # Initialize Flask
 app = Flask(__name__)
@@ -6,7 +7,7 @@ app = Flask(__name__)
 # Configure MySQL
 conn = pymysql.connect(host='localhost',
                        port=8001,
-                       user='root'
+                       user='root',
                        password='root',
                        db='WEJ',
                        charset='utf8mb4',

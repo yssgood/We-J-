@@ -6,7 +6,7 @@ USE WEJ;
 DROP TABLE IF EXISTS `User`;
 CREATE TABLE User(
     email VARCHAR(25),
-    password CHAR(64),
     username VARCHAR(25),
+    password CHAR(64),
     PRIMARY KEY (email)
 );

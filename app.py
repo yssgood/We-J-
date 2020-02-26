@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, session
 import pymysql.cursors
 
-from modules.User import User
+from modules.user import User
 
 # Initialize Flask
 app = Flask(__name__)

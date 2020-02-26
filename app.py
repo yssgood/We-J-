@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect
 import pymysql.cursors
 
 from modules.user import User
@@ -21,11 +21,23 @@ conn = pymysql.connect(host='localhost',
 
 @app.route('/')
 def index():
-  return render_template('index.html')
+  #user is already logged in
+  try:
+    print(session['email'])
+    return redirect('/home')
+  #user is not logged in
+  except:
+    return render_template('index.html')
 
 @app.route('/register')
 def register():
-  return render_template('register.html')
+  #user is already logged in
+  try:
+    session['email']
+    return redirect('/home')
+  #user is not logged in
+  except:
+    return render_template('register.html')
 
 @app.route('/registerAuth', methods=['GET', 'POST'])
 def registerAuth():
@@ -36,10 +48,16 @@ def registerAuth():
   activeUsers.append(newUser)
   session['email'] = email
   print(activeUsers)
-  return render_template('index.html')
+  return redirect('/home')
  
 @app.route('/login')
 def login():
+  #user is already logged in
+  try:
+    session['email']
+    return redirect('/home')
+  #user is not logged in
+  except:
     return render_template('login.html')
  
 @app.route('/loginAuth', methods=['GET', 'POST'])
@@ -47,11 +65,13 @@ def loginAuth():
     email = request.form['email']
     password = request.form['password']
     newUser = User(email)
-    newUser.loginUser(conn, password)
-    activeUsers.append(newUser)
-    session['email'] = email
-    print(activeUsers)
-    return render_template('index.html')
+    if(newUser.loginUser(conn, password)):
+      activeUsers.append(newUser)
+      session['email'] = email
+      print(activeUsers)
+      return redirect('/home')
+    else:
+      return redirect('/login')
 
 @app.route('/logout')
 def logout():
@@ -60,8 +80,18 @@ def logout():
       activeUsers.remove(user)
   session.pop('email')
   print(activeUsers)
-  return render_template('index.html')
+  return redirect('/')
+
+@app.route('/home')
+def home():
+  #user is logged in
+  try:
+    session['email']
+  #user is not logged in
+  except:
+    return redirect('/login')
+  return render_template('home.html')
 
 if __name__ == '__main__':
 	#app.run('127.0.0.1', 5000, debug=True)
-  app.run(host='0.0.0.0', port=5000)
+  app.run(host='0.0.0.0', port=5000, debug=True)

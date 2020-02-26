@@ -15,8 +15,9 @@ class User:
 
 	def loginUser(self, conn, password):
 		cursor = conn.cursor()
-		query = 'SELECT * FROM User WHERE email = %s and password = %s'
 		password = hashlib.sha256(password.encode()).hexdigest()
+		query = 'SELECT * FROM User WHERE email = %s and password = %s LIMIT 1'
 		cursor.execute(query, (self.email, password))
-		conn.commit()
+		data = cursor.fetchone()
 		cursor.close()
+		return data

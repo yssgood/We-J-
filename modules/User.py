@@ -13,7 +13,7 @@ class User:
 		conn.commit()
 		cursor.close()
 
-	def loginUser(self, conn, password):
+	def checkUser(self, conn, password):
 		cursor = conn.cursor()
 		password = hashlib.sha256(password.encode()).hexdigest()
 		query = 'SELECT * FROM User WHERE email = %s and password = %s LIMIT 1'

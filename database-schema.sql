@@ -11,7 +11,7 @@ CREATE TABLE User(
 
 DROP TABLE IF EXISTS 'MusicGroup';
 CREATE TABLE MusicGroup(
-	email VARCHAR(25), 
+    email VARCHAR(25), 
     groupName VARCHAR(25), 
     PRIMARY KEY (email, groupName)
 );

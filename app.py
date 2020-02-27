@@ -79,7 +79,10 @@ def loginAuth():
 def logout():
   activeUsers.remove(targetUser())
   session.pop('email')
-  session.pop('group')
+  try:
+    session.pop('group')
+  except:
+    pass
   print(activeUsers)
   return redirect('/')
 
@@ -102,6 +105,7 @@ def createGroupAuth():
       newGroup.insertGroupDetails(conn, groupName)
       activeGroups.append(newGroup)
       session['group'] = newGroup.name
+      print(activeGroups)
       return redirect('/groupsPage')
     else:
       print("yes")

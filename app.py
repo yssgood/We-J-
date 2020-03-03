@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, session, redirect
 import pymysql.cursors
 
-from modules.User import User
+from modules.user import User
+from modules.group import Group
 
 # Initialize Flask
 app = Flask(__name__)
@@ -9,6 +10,7 @@ app = Flask(__name__)
 app.secret_key = 'secret'
 
 activeUsers = []
+activeGroups = []
 
 # Configure MySQL
 conn = pymysql.connect(host='localhost',
@@ -65,7 +67,7 @@ def loginAuth():
     email = request.form['email']
     password = request.form['password']
     newUser = User(email)
-    if(newUser.loginUser(conn, password)):
+    if(newUser.checkUser(conn, password)):
       activeUsers.append(newUser)
       session['email'] = email
       print(activeUsers)
@@ -75,12 +77,57 @@ def loginAuth():
 
 @app.route('/logout')
 def logout():
-  for user in activeUsers:
-    if user.email == session['email']:
-      activeUsers.remove(user)
+  activeUsers.remove(targetUser())
   session.pop('email')
+  try:
+    session.pop('group')
+  except:
+    pass
   print(activeUsers)
   return redirect('/')
+
+@app.route('/createGroup')
+def createGroup():
+  #user is already logged in
+  try:
+    session['email']
+    return render_template('creategroup.html')
+  #user is not logged in
+  except:
+    return render_template('login.html', email=email)
+
+@app.route('/createGroupAuth', methods=['GET', 'POST'])
+def createGroupAuth():
+    email = session['email']
+    groupName = request.form['GroupName']
+    newGroup = Group(email, groupName)
+    if not(newGroup.checkMusicGroup(conn)):
+      newGroup.insertGroupDetails(conn, groupName)
+      activeGroups.append(newGroup)
+      session['group'] = newGroup.name
+      print(activeGroups)
+      return redirect('/groupsPage')
+    else:
+      print("yes")
+      return redirect('/createGroup')
+
+@app.route('/groupsPage')
+def groupsPage():
+	  #user is already logged in
+  try:
+    session['email']
+    return render_template('groupsPage.html', activeGroups = activeGroups)
+  #user is not logged in
+  except:
+    return redirect('/login')
+
+
+
+def targetUser():
+	for user in activeUsers:
+		if user.email == session['email']:
+			return user
+	return None
 
 @app.route('/home')
 def home():

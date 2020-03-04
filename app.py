@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, session, redirect
+from flask_socketio import SocketIO
 import pymysql.cursors
 
 from modules.user import User
@@ -6,6 +7,9 @@ from modules.group import Group
 
 # Initialize Flask
 app = Flask(__name__)
+
+socketio = SocketIO()
+socketio.init_app(app)
 
 app.secret_key = 'secret'
 
@@ -141,4 +145,5 @@ def home():
 
 if __name__ == '__main__':
 	#app.run('127.0.0.1', 5000, debug=True)
-  app.run(host='0.0.0.0', port=5000, debug=True)
+  #app.run(host='0.0.0.0', port=5000, debug=True)
+  socketio.run(app)

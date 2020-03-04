@@ -123,9 +123,16 @@ def groupsPage():
     return render_template('groupsPage.html', activeGroups = activeGroups)
   #user is not logged in
   except:
-    return redirect('/login')
+    return redirect('/login', group="test")
 
+@app.route('/group')
+def group():
+	return render_template('grouppage.html')
 
+@socketio.on("joinGroup", namespace="/group")
+def joinGroup(message):
+	join_room("test")
+	emit('update', {'msg': session['email'] + 'entered the group.'}, group="test")
 
 def targetUser():
 	for user in activeUsers:

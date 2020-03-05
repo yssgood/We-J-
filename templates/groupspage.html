@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Create Group</title>
+        <title>Music Groups</title>
     </head>
     <body>
-			<table>
-			{% for group in activeGroups %}
-				<tr>
-					<td>{{group.name}}<td>
-				</tr>
-			{% endfor %}
-			</table>
+		{% for group in activeGroups %}
+			<p>{{group.name}}</p>
+			<form action="/joinGroup/{{group.name}}" method="POST">
+                <input style="background-color: red;" type="submit" value="Join Group">
+            </form>
+		{% endfor %}
     </body>
 </html>

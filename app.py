@@ -110,7 +110,7 @@ def createGroupAuth():
       activeGroups.append(newGroup)
       session['group'] = newGroup.name
       print(activeGroups)
-      return redirect('/groupsPage')
+      return redirect('/group')
     else:
       print("yes")
       return redirect('/createGroup')
@@ -127,11 +127,29 @@ def groupsPage():
 
 @app.route('/group')
 def group():
-	return render_template('grouppage.html', group="test")
+  #user is already logged in
+  try:
+    session['email']
+    session['group']
+    return render_template('groupPage.html', group=session['group'])
+  #user is not logged in
+  except:
+    return redirect('/login')
+
+@app.route('/joinGroup/<group>', methods=['GET', 'POST'])
+def joinGroup(group):
+  #user is already logged in
+  try:
+    session['email']
+    session['group'] = group
+    return redirect('/group')
+  #user is not logged in
+  except:
+    return redirect('/login')
 
 @socketio.on("joinGroup", namespace="/group")
 def joinGroup(message):
-	group = "test"
+	group = session['group']
 	join_room(group)
 	emit('update', {'msg': session['email'] + ' entered the group.'}, room=group)
 

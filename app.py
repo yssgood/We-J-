@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, session, redirect
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit, join_room
 import pymysql.cursors
 
 from modules.user import User
@@ -123,16 +123,17 @@ def groupsPage():
     return render_template('groupsPage.html', activeGroups = activeGroups)
   #user is not logged in
   except:
-    return redirect('/login', group="test")
+    return redirect('/login')
 
 @app.route('/group')
 def group():
-	return render_template('grouppage.html')
+	return render_template('grouppage.html', group="test")
 
 @socketio.on("joinGroup", namespace="/group")
 def joinGroup(message):
-	join_room("test")
-	emit('update', {'msg': session['email'] + 'entered the group.'}, group="test")
+	group = "test"
+	join_room(group)
+	emit('update', {'msg': session['email'] + ' entered the group.'}, room=group)
 
 def targetUser():
 	for user in activeUsers:

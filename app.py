@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, session, redirect
 from flask_socketio import SocketIO, emit, join_room
 import pymysql.cursors
+import json
 
 from modules.user import User
 from modules.group import Group
@@ -152,6 +153,19 @@ def joinGroup(message):
 	group = session['group']
 	join_room(group)
 	emit('update', {'msg': session['email'] + ' entered the group.'}, room=group)
+
+@socketio.on("broadcastSong", namespace="/group")
+def fetchSong(message):
+  group = session['group']
+  emit('message', {'msg': message['msg']}, room=group)
+
+@app.route('/isDJ', methods=['GET', 'POST'])
+def isDJ():
+  if(session['email'] == 'a'):
+    return json.dumps({'isDJ': True})
+  if(session['email'] == 'b'):
+    return json.dumps({'isDJ': True})
+  return json.dumps({'isDJ': False})
 
 def targetUser():
 	for user in activeUsers:

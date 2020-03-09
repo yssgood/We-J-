@@ -26,6 +26,37 @@ conn = pymysql.connect(host='localhost',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
 
+'''
+DJ Rotation Thread - Works for one group only right now.
+'''
+from threading import Thread, Event, Lock
+clients = []
+
+class DJRotateThread(Thread):
+    def __init__(self, event):
+        Thread.__init__(self)
+        self.stopped = event
+        self.djIndex = 0;
+
+    def run(self):
+        while not self.stopped.wait(4.95):
+            mutex.acquire()
+            try:
+                if(len(clients) > 0):
+                    self.djIndex = (self.djIndex + 1) % len(clients)
+            finally:
+                print(self.djIndex)
+                mutex.release()
+
+    def getIndex(self):
+    	return self.djIndex
+
+mutex = Lock()
+stopFlag = Event()
+thread = DJRotateThread(stopFlag)
+'''
+'''
+
 @app.route('/')
 def index():
   #user is already logged in
@@ -111,6 +142,7 @@ def createGroupAuth():
       activeGroups.append(newGroup)
       session['group'] = newGroup.name
       print(activeGroups)
+      thread.start()
       return redirect('/group')
     else:
       print("yes")
@@ -151,6 +183,11 @@ def joinGroup(group):
 @socketio.on("joinGroup", namespace="/group")
 def joinGroup(message):
 	group = session['group']
+	mutex.acquire()
+	try:
+		clients.append(request.sid)
+	finally:
+		mutex.release()
 	join_room(group)
 	emit('update', {'msg': session['email'] + ' entered the group.'}, room=group)
 
@@ -159,12 +196,15 @@ def fetchSong(message):
   group = session['group']
   emit('message', {'msg': message['msg']}, room=group)
 
-@app.route('/isDJ', methods=['GET', 'POST'])
-def isDJ():
-  if(session['email'] == 'a'):
-    return json.dumps({'isDJ': True})
-  if(session['email'] == 'b'):
-    return json.dumps({'isDJ': True})
+@app.route('/isDJ/<socketID>', methods=['GET', 'POST'])
+def isDJ(socketID):
+  socketID = socketID[8:]
+  mutex.acquire()
+  try:
+    if(socketID == clients[thread.getIndex()]):
+      return json.dumps({'isDJ': True})
+  finally:
+    mutex.release()
   return json.dumps({'isDJ': False})
 
 def targetUser():

@@ -12,7 +12,7 @@ app = Flask(__name__)
 socketio = SocketIO()
 socketio.init_app(app)
 
-app.secret_key = 'secret'
+app.secret_key = 'SomethingSuperSecretThatYoullNeverEverGuess'
 
 activeUsers = []
 activeGroups = []
@@ -39,13 +39,13 @@ class DJRotateThread(Thread):
         self.djIndex = 0;
 
     def run(self):
-        while not self.stopped.wait(4.95):
+        while not self.stopped.wait(10):
             mutex.acquire()
             try:
                 if(len(clients) > 0):
                     self.djIndex = (self.djIndex + 1) % len(clients)
+                    print(self.djIndex)
             finally:
-                print(self.djIndex)
                 mutex.release()
 
     def getIndex(self):

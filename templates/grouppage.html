@@ -2,14 +2,16 @@
 <html>
     <head>
         <title>Group Page</title>
-       	<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
-        <script type="text/javascript" src="{{url_for('static', filename='groupPage.js')}}"></script>
+        <script type="text/javascript" src="{{url_for('static', filename='js/lib/jquery-3.4.1.min.js')}}"></script>
+        <script type="text/javascript" src="{{url_for('static', filename='js/lib/socket.io.js')}}"></script>
+        <script type="text/javascript" src="{{url_for('static', filename='js/groupPage.js')}}"></script>
     </head>
     <body>
     	<h1>{{ group }}</h1>
         <textarea id="chat" cols="50" rows="20"></textarea>
-        <div id="DJInput"></div>
+        <div id="DJInput">
+            <input type="text">
+        </div>
         <div id="EmbeddedSong"></div>
     </body>
 </html>

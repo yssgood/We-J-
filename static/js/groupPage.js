@@ -13,27 +13,27 @@ $(document).ready(function() {
     });
     $('#DJInput').on('keypress', function(key) {
         if (key.keyCode == 13) {
+            var song = $('#DJInput input').val();
+            $('#DJInput input').val('');
             socket.emit('broadcastSong', {
-                msg: $('#DJInput input').val()
+                msg: song
             });
         }
     })
-    $('.EmbeddedSong').on('click', function(event) { });
     function showInputFieldToDJ() {
-        $("#DJInput input").remove();
         $.ajax({
             type: 'POST',
             url: '/isDJ/' + encodeURIComponent(socket.id),
             success: function(response) {
                 if (JSON.parse(response).isDJ) {
-                    var input = document.createElement("input");
-                    input.id = "song";
-                    input.type = "text";
-                    document.getElementById("DJInput").appendChild(input);
+                    $("#DJInput input").show();
+                }
+                else{
+                    $("#DJInput input").hide();
                 }
             }
         });
         return false;
     }
-    setInterval(showInputFieldToDJ, 5000);
+    setInterval(showInputFieldToDJ, 1000);
 });

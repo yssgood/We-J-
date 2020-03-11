@@ -9,7 +9,7 @@ $(document).ready(function() {
     });
     socket.on('message', function(data) {
         $("#EmbeddedSong iframe").remove();
-        $("#EmbeddedSong").append("<iframe width='560' height='315' src='https://www.youtube.com/embed/" + data.msg + "?autoplay=1&controls=0&loop=1&playlist=" + data.msg + "' allow='autoplay'></iframe>");
+        $("#EmbeddedSong").append("<iframe width='560' height='315' src='https://www.youtube.com/embed/" + data.msg + "?autoplay=1&controls=0&loop=1'></iframe>");
     });
     document.getElementById("leaveButton").onclick = function () {
         socket.emit('leaveGroup', {}, function(){
@@ -17,6 +17,15 @@ $(document).ready(function() {
             window.location.href = "/home";
         });
     }
+    $('#message').on('keypress', function(key) {
+        if (key.keyCode == 13) {
+            message = $('#message').val();
+            $('#message').val('');
+            socket.emit('sendMessage', {
+                msg: message
+            });
+        }
+    })
     $('#DJInput').on('keypress', function(key) {
         if (key.keyCode == 13) {
             var song = $('#DJInput input').val();

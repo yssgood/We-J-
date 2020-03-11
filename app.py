@@ -208,17 +208,17 @@ def joinGroup(message):
 	finally:
 		mutex.release()
 	join_room(group)
-	emit('update', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + session['email'] + ' entered the group.'}, room=group)
+	emit('update', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + session['username'] + ' entered the group.'}, room=group)
 
 @socketio.on("broadcastSong", namespace="/group")
 def fetchSong(message):
   group = session['group']
-  emit('message', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + message['msg']}, room=group)
+  emit('message', {'msg': message['msg']}, room=group)
 
 @socketio.on("sendMessage", namespace="/group")
 def sendMessage(message):
   group = session['group']
-  emit('update', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + session['email'] + ': ' + message['msg']}, room=group)
+  emit('update', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + session['username'] + ': ' + message['msg']}, room=group)
 
 @socketio.on("leaveGroup", namespace="/group")
 def leaveGroup(message):
@@ -229,7 +229,7 @@ def leaveGroup(message):
   finally:
     mutex.release()
   leave_room(group)
-  emit('update', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + session['email'] + ' left the group.'}, room=group)
+  emit('update', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + session['username'] + ' left the group.'}, room=group)
 
 @socketio.on("disconnect", namespace="/group")
 def disconnect():
@@ -267,4 +267,4 @@ def home():
 if __name__ == '__main__':
   #app.run('127.0.0.1', 5000, debug=True)
   #app.run(host='0.0.0.0', port=5000, debug=True)
-  socketio.run(app)
+  socketio.run(app, host='0.0.0.0', port=5000)

@@ -209,6 +209,22 @@ def fetchSong(message):
   group = session['group']
   emit('message', {'msg': message['msg']}, room=group)
 
+@socketio.on("sendMessage", namespace="/group")
+def sendMessage(message):
+  group = session['group']
+  emit('update', {'msg': session['email'] + ': ' + message['msg']}, room=group)
+
+@socketio.on("leaveGroup", namespace="/group")
+def leaveGroup(message):
+  group = session['group']
+  mutex.acquire()
+  try:
+    cliens.remove(request.sid)
+  finally:
+    mutex.release()
+  leave_room(group)
+  emit('update', {'msg': session['email'] + ' left the group.'}, room=group)
+
 @app.route('/isDJ/<socketID>', methods=['GET', 'POST'])
 def isDJ(socketID):
   socketID = socketID[8:]

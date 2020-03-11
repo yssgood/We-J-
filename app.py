@@ -77,16 +77,29 @@ def register():
   except:
     return render_template('register.html')
 
+def checkUserExist(conn, email):
+	cursor = conn.cursor()
+	query = 'SELECT * FROM User WHERE email = %s LIMIT 1'
+	cursor.execute(query, (email))
+	data = cursor.fetchone()
+	cursor.close()
+	return data
+
 @app.route('/registerAuth', methods=['GET', 'POST'])
 def registerAuth():
+
   email = request.form['email']
   password = request.form['password']
-  newUser = User(email)
-  newUser.insertRegisterDetails(conn, password)
-  activeUsers.append(newUser)
-  session['email'] = email
-  print(activeUsers)
-  return redirect('/home')
+  if not checkUserExist(conn, email):
+	  newUser = User(email)
+	  newUser.insertRegisterDetails(conn, password)
+	  activeUsers.append(newUser)
+	  session['email'] = email
+	  print(activeUsers)
+	  return redirect('/home')
+  else:
+  	error = "User already exists, please enter another email"
+  	return render_template("register.html", error = error)
  
 @app.route('/login')
 def login():

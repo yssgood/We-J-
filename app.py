@@ -87,7 +87,6 @@ def checkUserExist(conn, email):
 
 @app.route('/registerAuth', methods=['GET', 'POST'])
 def registerAuth():
-
   email = request.form['email']
   password = request.form['password']
   if not checkUserExist(conn, email):
@@ -122,7 +121,8 @@ def loginAuth():
       print(activeUsers)
       return redirect('/home')
     else:
-      return redirect('/login')
+      error = "Incorrect Login, Please enter again"
+      return render_template("login.html", error = error)
 
 @app.route('/logout')
 def logout():

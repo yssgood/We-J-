@@ -50,7 +50,7 @@ class DJRotateThread(Thread):
                 mutex.release()
 
     def getIndex(self):
-    	return self.djIndex
+      return self.djIndex
 
 mutex = Lock()
 stopFlag = Event()
@@ -79,28 +79,29 @@ def register():
     return render_template('register.html')
 
 def checkUserExist(conn, email):
-	cursor = conn.cursor()
-	query = 'SELECT * FROM User WHERE email = %s LIMIT 1'
-	cursor.execute(query, (email))
-	data = cursor.fetchone()
-	cursor.close()
-	return data
+  cursor = conn.cursor()
+  query = 'SELECT * FROM User WHERE email = %s LIMIT 1'
+  cursor.execute(query, (email))
+  data = cursor.fetchone()
+  cursor.close()
+  return data
 
 @app.route('/registerAuth', methods=['GET', 'POST'])
 def registerAuth():
-
   email = request.form['email']
+  username = request.form['username']
   password = request.form['password']
   if not checkUserExist(conn, email):
-	  newUser = User(email)
-	  newUser.insertRegisterDetails(conn, password)
-	  activeUsers.append(newUser)
-	  session['email'] = email
-	  print(activeUsers)
-	  return redirect('/home')
+    newUser = User(email, username)
+    newUser.insertRegisterDetails(conn, password)
+    activeUsers.append(newUser)
+    session['email'] = email
+    session['username'] = username
+    print(activeUsers)
+    return redirect('/home')
   else:
-  	error = "User already exists, please enter another email"
-  	return render_template("register.html", error = error)
+    error = "User already exists, please enter another email"
+    return render_template("register.html", error = error)
  
 @app.route('/login')
 def login():
@@ -118,12 +119,15 @@ def loginAuth():
     password = request.form['password']
     newUser = User(email)
     if(newUser.checkUser(conn, password)):
+      newUser.updateUsername(conn)
       activeUsers.append(newUser)
       session['email'] = email
+      session['username'] = newUser.username
       print(activeUsers)
       return redirect('/home')
     else:
-      return redirect('/login')
+      error = "Incorrect Login, Please enter again"
+      return render_template("login.html", error = error)
 
 @app.route('/logout')
 def logout():
@@ -149,22 +153,23 @@ def createGroup():
 @app.route('/createGroupAuth', methods=['GET', 'POST'])
 def createGroupAuth():
     email = session['email']
+    username = session['username']
     groupName = request.form['GroupName']
-    newGroup = Group(email, groupName)
+    newGroup = Group(email, username, groupName)
     if not(newGroup.checkMusicGroup(conn)):
-      newGroup.insertGroupDetails(conn, groupName)
+      newGroup.insertGroupDetails(conn)
       activeGroups.append(newGroup)
       session['group'] = newGroup.name
       print(activeGroups)
       thread.start()
       return redirect('/group')
     else:
-      print("yes")
-      return redirect('/createGroup')
+      error = "You already have a group."
+      return render_template("creategroup.html", error = error)
 
 @app.route('/groupsPage')
 def groupsPage():
-	  #user is already logged in
+    #user is already logged in
   try:
     session['email']
     return render_template('groupsPage.html', activeGroups = activeGroups)
@@ -244,10 +249,10 @@ def isDJ(socketID):
   return json.dumps({'isDJ': False})
 
 def targetUser():
-	for user in activeUsers:
-		if user.email == session['email']:
-			return user
-	return None
+  for user in activeUsers:
+    if user.email == session['email']:
+      return user
+  return None
 
 @app.route('/home')
 def home():
@@ -260,6 +265,6 @@ def home():
   return render_template('home.html')
 
 if __name__ == '__main__':
-	#app.run('127.0.0.1', 5000, debug=True)
+  #app.run('127.0.0.1', 5000, debug=True)
   #app.run(host='0.0.0.0', port=5000, debug=True)
   socketio.run(app)

@@ -11,6 +11,12 @@ $(document).ready(function() {
         $("#EmbeddedSong iframe").remove();
         $("#EmbeddedSong").append("<iframe width='560' height='315' src='https://www.youtube.com/embed/" + data.msg + "?autoplay=1&controls=0&loop=1&playlist=" + data.msg + "' allow='autoplay'></iframe>");
     });
+    document.getElementById("leaveButton").onclick = function () {
+        socket.emit('leaveGroup', {}, function(){
+            socket.disconnect();
+            window.location.href = "/home";
+        });
+    }
     $('#DJInput').on('keypress', function(key) {
         if (key.keyCode == 13) {
             var song = $('#DJInput input').val();

@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, session, redirect
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import pymysql.cursors
 import json
+import datetime
 
 from modules.user import User
 from modules.group import Group
@@ -200,35 +201,41 @@ def joinGroup(group):
 
 @socketio.on("joinGroup", namespace="/group")
 def joinGroup(message):
-  group = session['group']
-  mutex.acquire()
-  try:
-    clients.append(request.sid)
-  finally:
-    mutex.release()
-  join_room(group)
-  emit('update', {'msg': session['username'] + ' entered the group.'}, room=group)
+	group = session['group']
+	mutex.acquire()
+	try:
+		clients.append(request.sid)
+	finally:
+		mutex.release()
+	join_room(group)
+	emit('update', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + session['email'] + ' entered the group.'}, room=group)
 
 @socketio.on("broadcastSong", namespace="/group")
 def fetchSong(message):
   group = session['group']
-  emit('message', {'msg': message['msg']}, room=group)
+  emit('message', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + message['msg']}, room=group)
 
 @socketio.on("sendMessage", namespace="/group")
 def sendMessage(message):
   group = session['group']
-  emit('update', {'msg': session['email'] + ': ' + message['msg']}, room=group)
+  emit('update', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + session['email'] + ': ' + message['msg']}, room=group)
 
 @socketio.on("leaveGroup", namespace="/group")
 def leaveGroup(message):
   group = session['group']
   mutex.acquire()
   try:
-    cliens.remove(request.sid)
+    clients.remove(request.sid)
   finally:
     mutex.release()
   leave_room(group)
-  emit('update', {'msg': session['email'] + ' left the group.'}, room=group)
+  emit('update', {'msg': datetime.datetime.now().strftime("[%I:%M:%S %p] ") + session['email'] + ' left the group.'}, room=group)
+
+@socketio.on("disconnect", namespace="/group")
+def disconnect():
+  print("disconnected")
+  leaveGroup("")
+  logout()
 
 @app.route('/isDJ/<socketID>', methods=['GET', 'POST'])
 def isDJ(socketID):

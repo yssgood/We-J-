@@ -1,14 +1,21 @@
 from flask import Flask, render_template, request, session, redirect
+from flask_socketio import SocketIO, emit, join_room
 import pymysql.cursors
+import json
 
-from modules.User import User
+from modules.user import User
+from modules.group import Group
 
 # Initialize Flask
 app = Flask(__name__)
 
-app.secret_key = 'secret'
+socketio = SocketIO()
+socketio.init_app(app)
+
+app.secret_key = 'SomethingSuperSecretThatYoullNeverEverGuess'
 
 activeUsers = []
+activeGroups = []
 
 # Configure MySQL
 conn = pymysql.connect(host='localhost',
@@ -18,6 +25,37 @@ conn = pymysql.connect(host='localhost',
                        db='WEJ',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
+
+'''
+DJ Rotation Thread - Works for one group only right now.
+'''
+from threading import Thread, Event, Lock
+clients = []
+
+class DJRotateThread(Thread):
+    def __init__(self, event):
+        Thread.__init__(self)
+        self.stopped = event
+        self.djIndex = 0;
+
+    def run(self):
+        while not self.stopped.wait(10):
+            mutex.acquire()
+            try:
+                if(len(clients) > 0):
+                    self.djIndex = (self.djIndex + 1) % len(clients)
+                    print(self.djIndex)
+            finally:
+                mutex.release()
+
+    def getIndex(self):
+    	return self.djIndex
+
+mutex = Lock()
+stopFlag = Event()
+thread = DJRotateThread(stopFlag)
+'''
+'''
 
 @app.route('/')
 def index():
@@ -65,7 +103,7 @@ def loginAuth():
     email = request.form['email']
     password = request.form['password']
     newUser = User(email)
-    if(newUser.loginUser(conn, password)):
+    if(newUser.checkUser(conn, password)):
       activeUsers.append(newUser)
       session['email'] = email
       print(activeUsers)
@@ -75,12 +113,105 @@ def loginAuth():
 
 @app.route('/logout')
 def logout():
-  for user in activeUsers:
-    if user.email == session['email']:
-      activeUsers.remove(user)
+  activeUsers.remove(targetUser())
   session.pop('email')
+  try:
+    session.pop('group')
+  except:
+    pass
   print(activeUsers)
   return redirect('/')
+
+@app.route('/createGroup')
+def createGroup():
+  #user is already logged in
+  try:
+    session['email']
+    return render_template('creategroup.html')
+  #user is not logged in
+  except:
+    return render_template('login.html', email=email)
+
+@app.route('/createGroupAuth', methods=['GET', 'POST'])
+def createGroupAuth():
+    email = session['email']
+    groupName = request.form['GroupName']
+    newGroup = Group(email, groupName)
+    if not(newGroup.checkMusicGroup(conn)):
+      newGroup.insertGroupDetails(conn, groupName)
+      activeGroups.append(newGroup)
+      session['group'] = newGroup.name
+      print(activeGroups)
+      thread.start()
+      return redirect('/group')
+    else:
+      print("yes")
+      return redirect('/createGroup')
+
+@app.route('/groupsPage')
+def groupsPage():
+	  #user is already logged in
+  try:
+    session['email']
+    return render_template('groupsPage.html', activeGroups = activeGroups)
+  #user is not logged in
+  except:
+    return redirect('/login')
+
+@app.route('/group')
+def group():
+  #user is already logged in
+  try:
+    session['email']
+    session['group']
+    return render_template('groupPage.html', group=session['group'])
+  #user is not logged in
+  except:
+    return redirect('/login')
+
+@app.route('/joinGroup/<group>', methods=['GET', 'POST'])
+def joinGroup(group):
+  #user is already logged in
+  try:
+    session['email']
+    session['group'] = group
+    return redirect('/group')
+  #user is not logged in
+  except:
+    return redirect('/login')
+
+@socketio.on("joinGroup", namespace="/group")
+def joinGroup(message):
+	group = session['group']
+	mutex.acquire()
+	try:
+		clients.append(request.sid)
+	finally:
+		mutex.release()
+	join_room(group)
+	emit('update', {'msg': session['email'] + ' entered the group.'}, room=group)
+
+@socketio.on("broadcastSong", namespace="/group")
+def fetchSong(message):
+  group = session['group']
+  emit('message', {'msg': message['msg']}, room=group)
+
+@app.route('/isDJ/<socketID>', methods=['GET', 'POST'])
+def isDJ(socketID):
+  socketID = socketID[8:]
+  mutex.acquire()
+  try:
+    if(socketID == clients[thread.getIndex()]):
+      return json.dumps({'isDJ': True})
+  finally:
+    mutex.release()
+  return json.dumps({'isDJ': False})
+
+def targetUser():
+	for user in activeUsers:
+		if user.email == session['email']:
+			return user
+	return None
 
 @app.route('/home')
 def home():
@@ -94,4 +225,5 @@ def home():
 
 if __name__ == '__main__':
 	#app.run('127.0.0.1', 5000, debug=True)
-  app.run(host='0.0.0.0', port=5000, debug=True)
+  #app.run(host='0.0.0.0', port=5000, debug=True)
+  socketio.run(app)

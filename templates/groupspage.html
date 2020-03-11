@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Music Groups</title>
+    </head>
+    <body>
+		{% for group in activeGroups %}
+			<p>{{group.name}}</p>
+			<form action="/joinGroup/{{group.name}}" method="POST">
+                <input style="background-color: red;" type="submit" value="Join Group">
+            </form>
+		{% endfor %}
+    </body>
+</html>

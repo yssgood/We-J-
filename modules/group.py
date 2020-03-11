@@ -1,14 +1,15 @@
 import pymysql.cursors
 
 class Group:
-	def __init__(self, email, name):
+	def __init__(self, email, username, name):
 		self.email = email
+		self.username = username
 		self.name = name
 
-	def insertGroupDetails(self, conn, name):
+	def insertGroupDetails(self, conn):
 		cursor = conn.cursor()
-		query = 'INSERT INTO MusicGroup(email, groupName) VALUES(%s, %s)'
-		cursor.execute(query, (self.email, self.name))
+		query = 'INSERT INTO MusicGroup(email, username, groupName) VALUES(%s, %s, %s)'
+		cursor.execute(query, (self.email, self.username, self.name))
 		conn.commit()
 		cursor.close()
 

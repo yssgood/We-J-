@@ -5,7 +5,7 @@
     </head>
     <body>
 		{% for group in activeGroups %}
-			<p>{{group.name}}</p>
+			<p>{{group.name}} hosted by {{group.username}}</p>
 			<form action="/joinGroup/{{group.name}}" method="POST">
                 <input style="background-color: red;" type="submit" value="Join Group">
             </form>

@@ -1,23 +1,22 @@
 import pymysql.cursors
 
 class Group:
-	def __init__(self, email, username, name):
-		self.email = email
-		self.username = username
+	def __init__(self, ownerEmail, name, creatorUsername):
+		self.ownerEmail = ownerEmail
 		self.name = name
+		self.creatorUsername = creatorUsername
 
 	def insertGroupDetails(self, conn):
 		cursor = conn.cursor()
-		query = 'INSERT INTO MusicGroup(email, username, groupName) VALUES(%s, %s, %s)'
-		cursor.execute(query, (self.email, self.username, self.name))
+		query = 'INSERT INTO MusicGroup(ownerEmail, groupName) VALUES(%s, %s)'
+		cursor.execute(query, (self.ownerEmail, self.name))
 		conn.commit()
 		cursor.close()
 
-	def checkMusicGroup(self, conn):
+	def checkIfGroupExists(self, conn):
 		cursor = conn.cursor()
-		query = 'SELECT * FROM MusicGroup WHERE email = %s'
-		cursor.execute(query, (self.email))
+		query = 'SELECT * FROM MusicGroup WHERE groupName = %s LIMIT 1'
+		cursor.execute(query, (self.name))
 		data = cursor.fetchone()
 		cursor.close()
 		return data
-

@@ -14,7 +14,7 @@ class User:
 		conn.commit()
 		cursor.close()
 
-	def checkUser(self, conn, password):
+	def validateUser(self, conn, password):
 		cursor = conn.cursor()
 		password = hashlib.sha256(password.encode()).hexdigest()
 		query = 'SELECT * FROM User WHERE email = %s and password = %s LIMIT 1'
@@ -23,7 +23,7 @@ class User:
 		cursor.close()
 		return data
 
-	def updateUsername(self, conn):
+	def fetchAndUpdateUsername(self, conn):
 		cursor = conn.cursor()
 		query = 'SELECT * FROM User WHERE email = %s LIMIT 1'
 		cursor.execute(query, (self.email))

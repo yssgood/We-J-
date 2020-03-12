@@ -9,12 +9,11 @@ $(document).ready(function() {
     });
     socket.on('message', function(data) {
         $("#EmbeddedSong iframe").remove();
-        $("#EmbeddedSong").append("<iframe width='560' height='315' src='https://www.youtube.com/embed/" + data.msg + "?autoplay=1&controls=0&loop=1'></iframe>");
+        $("#EmbeddedSong").append("<iframe width='560' height='315' src='https://www.youtube.com/embed/" + data.msg + "?autoplay=1&controls=0' allow='autoplay'></iframe>");
     });
-    document.getElementById("leaveButton").onclick = function () {
-        socket.emit('leaveGroup', {}, function(){
-            socket.disconnect();
-            window.location.href = "/home";
+    document.getElementById("leaveButton").onclick = function() {
+        socket.emit('leaveGroup', {}, function() {
+            window.location.href = '/home';
         });
     }
     $('#message').on('keypress', function(key) {
@@ -48,7 +47,7 @@ $(document).ready(function() {
                 }
             }
         });
-        return false;
+        return true;
     }
     setInterval(showInputFieldToDJ, 1000);
 });

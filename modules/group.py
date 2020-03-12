@@ -8,6 +8,7 @@ class Group:
 		self.ownerEmail = ownerEmail
 		self.name = name
 		self.creatorUsername = creatorUsername
+		self.currentSong = None;
 		self.thread = DJRotateThread(Event())
 
 	def insertGroupDetails(self, conn):
@@ -33,6 +34,12 @@ class Group:
 
 	def getThreadIndex(self):
 		return self.thread.getIndex()
+
+	def getCurrentSong(self):
+		return self.currentSong
+
+	def setCurrentSong(self, currentSong):
+		self.currentSong = currentSong
 
 	def startDJRotateThread(self):
 		self.thread.start()

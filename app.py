@@ -166,25 +166,24 @@ def joinGroup(message):
 		print(clients)
 	finally:
 		pass
-	join_room(group)
+	join_room(session['group'])
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
-		 + session['username'] + ' entered the group.'}, room=group)
+		 + session['username'] + ' entered the group.'}, room=session['group'])
+	if group.getCurrentSong():
+		emit('video', {'msg': group.getCurrentSong()}, room=request.sid)
 
 @socketio.on('broadcastSong', namespace='/group')
 def fetchSong(message):
-	group = session['group']
-	join_room(group)
-	emit('video', {'msg': message['msg']}, room=group)
+	group = getGroupObject(session['group'])
+	group.setCurrentSong(message['msg'])
+	emit('video', {'msg': message['msg']}, room=session['group'])
 
 @socketio.on('sendMessage', namespace='/group')
 def sendMessage(message):
-	group = session['group']
-	print(group, message)
-	join_room(group)
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
-		 + session['username'] + ': ' + message['msg']}, room=group)
+		 + session['username'] + ': ' + message['msg']}, room=session['group'])
 
 def removeGroup(group):
 	cursor = conn.cursor()
@@ -196,7 +195,6 @@ def removeGroup(group):
 
 @socketio.on('leaveGroup', namespace='/group')
 def leaveGroup(message):
-	global leftGroup
 	group = getGroupObject(session['group'])
 	clients = group.getClients()
 	try:
@@ -210,13 +208,14 @@ def leaveGroup(message):
 	finally:
 		pass
 	leaveGroups.append([session['email'], True])
-	leave_room(group)
+	leave_room(session['group'])
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
-		 + session['username'] + ' left the group.'}, room=group)
+		 + session['username'] + ' left the group.'}, room=session['group'])
 
 @socketio.on('disconnect', namespace='/group')
 def disconnect():
+	print("DISCONNECTED")
 	try:
 		leaveGroup(None)
 		logout()

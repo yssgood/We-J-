@@ -7,7 +7,7 @@ $(document).ready(function() {
     socket.on('update', function(data) {
         $('#chat').val($('#chat').val() + data.msg + '\n');
     });
-    socket.on('message', function(data) {
+    socket.on('video', function(data) {
         $("#EmbeddedSong iframe").remove();
         $("#EmbeddedSong").append("<iframe width='560' height='315' src='https://www.youtube.com/embed/" + data.msg + "?autoplay=1&controls=0' allow='autoplay'></iframe>");
     });
@@ -15,16 +15,16 @@ $(document).ready(function() {
         socket.emit('leaveGroup', {}, function() {
             window.location.href = '/home';
         });
-    }
-    $('#message').on('keypress', function(key) {
+    };
+    $('#messageInput').on('keypress', function(key) {
         if (key.keyCode == 13) {
-            message = $('#message').val();
-            $('#message').val('');
+            var message = $('#messageInput input').val();
+            $('#messageInput input').val('');
             socket.emit('sendMessage', {
                 msg: message
             });
         }
-    })
+    });
     $('#DJInput').on('keypress', function(key) {
         if (key.keyCode == 13) {
             var song = $('#DJInput input').val();
@@ -33,7 +33,7 @@ $(document).ready(function() {
                 msg: song
             });
         }
-    })
+    });
     function showInputFieldToDJ() {
         $.ajax({
             type: 'POST',

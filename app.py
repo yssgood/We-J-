@@ -10,7 +10,8 @@ from modules.group import Group
 app = Flask(__name__)
 app.secret_key = 'SomethingSuperSecretThatYoullNeverEverGuess'
 
-socketio = SocketIO(app, manage_session=False)
+socketio = SocketIO()
+socketio.init_app(app)
 
 leaveGroups = []
 activeGroups = []
@@ -22,32 +23,6 @@ conn = pymysql.connect(host='localhost',
 						db='WEJ',
 						charset='utf8mb4',
 						cursorclass=pymysql.cursors.DictCursor)
-
-from threading import Thread, Event, Lock
-clients = []
-
-class DJRotateThread(Thread):
-	def __init__(self, event):
-		Thread.__init__(self)
-		self.stopped = event
-		self.djIndex = 0
-
-	def run(self):
-		while not self.stopped.wait(10):
-			mutex.acquire()
-			try:
-				if len(clients) > 0:
-					self.djIndex = (self.djIndex + 1) % len(clients)
-					print(self.djIndex)
-			finally:
-				mutex.release()
-
-	def getIndex(self):
-		return self.djIndex
-
-mutex = Lock()
-stopFlag = Event()
-thread = DJRotateThread(stopFlag)
 
 @app.route('/')
 def index():
@@ -142,7 +117,7 @@ def createGroupAuth():
 			activeGroups.append(newGroup)
 			session['group'] = newGroup.name
 			print(activeGroups)
-			thread.start()
+			newGroup.startDJRotateThread()
 			return redirect('/group')
 		else:
 			error = 'A group with this name already exists! Please try again.'
@@ -166,6 +141,12 @@ def group():
 	except:
 		return redirect('/login')
 
+def getGroupObject(name):
+	for group in activeGroups:
+		if group.getName() == name:
+			return group
+	return None
+
 @app.route('/joinGroup/<group>', methods=['GET', 'POST'])
 def joinGroup(group):
 	try:
@@ -177,14 +158,14 @@ def joinGroup(group):
 
 @socketio.on('joinGroup', namespace='/group')
 def joinGroup(message):
-	group = session['group']
-	mutex.acquire()
+	group = getGroupObject(session['group'])
+	clients = group.getClients()
 	try:
 		print(clients)
 		clients.append(request.sid)
 		print(clients)
 	finally:
-		mutex.release()
+		pass
 	join_room(group)
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
@@ -193,26 +174,41 @@ def joinGroup(message):
 @socketio.on('broadcastSong', namespace='/group')
 def fetchSong(message):
 	group = session['group']
-	emit('message', {'msg': message['msg']}, room=group)
+	join_room(group)
+	emit('video', {'msg': message['msg']}, room=group)
 
 @socketio.on('sendMessage', namespace='/group')
 def sendMessage(message):
 	group = session['group']
+	print(group, message)
+	join_room(group)
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
 		 + session['username'] + ': ' + message['msg']}, room=group)
 
+def removeGroup(group):
+	cursor = conn.cursor()
+	query = 'DELETE FROM MusicGroup WHERE groupName = %s'
+	cursor.execute(query, (group.getName()))
+	conn.commit()
+	cursor.close()
+	activeGroups.remove(group)
+
 @socketio.on('leaveGroup', namespace='/group')
 def leaveGroup(message):
 	global leftGroup
-	group = session['group']
-	mutex.acquire()
+	group = getGroupObject(session['group'])
+	clients = group.getClients()
 	try:
 		print(clients)
 		clients.remove(request.sid)
 		print(clients)
+		print(activeGroups)
+		if not clients:
+			removeGroup(group)
+		print(activeGroups)
 	finally:
-		mutex.release()
+		pass
 	leaveGroups.append([session['email'], True])
 	leave_room(group)
 	emit('update',
@@ -230,12 +226,13 @@ def disconnect():
 @app.route('/isDJ/<socketID>', methods=['GET', 'POST'])
 def isDJ(socketID):
 	socketID = socketID[8:]
-	mutex.acquire()
 	try:
-		if socketID == clients[thread.getIndex()]:
+		group = getGroupObject(session['group'])
+		clients = group.getClients()
+		if socketID == clients[group.getThreadIndex()]:
 			return json.dumps({'isDJ': True})
 	finally:
-		mutex.release()
+		pass
 	return json.dumps({'isDJ': False})
 
 @app.route('/home')

@@ -21,6 +21,7 @@ $(document).ready(function() {
     document.getElementById("saveSongButton").onclick = function() {
         $.ajax({
             type: 'POST',
+            aysnc: false,
             url: '/saveSong/' + encodeURIComponent(currentSong),
             success: function(response) {
                if(JSON.parse(response).savedSong){
@@ -53,16 +54,22 @@ $(document).ready(function() {
     function showMemberCount() {
         $.ajax({
             type: 'GET',
+            aysnc: false,
             url: '/getMemberCount',
             success: function(response) {
+                var memberCount = JSON.parse(response).memberCount;
+                if(memberCount == -1){
+                    window.location.href = '/home';
+                }
                 $("#MemberCount p").remove();
-                $("#MemberCount").append("<p>Active Members: " + JSON.parse(response).memberCount + "</p>");
+                $("#MemberCount").append("<p>Active Members: " + memberCount + "</p>");
             }
         });
     }
     function showInputFieldToDJ() {
         $.ajax({
             type: 'POST',
+            aysnc: false,
             url: '/isDJ/' + encodeURIComponent(socket.id),
             success: function(response) {
                 if (JSON.parse(response).isDJ) {

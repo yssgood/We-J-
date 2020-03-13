@@ -13,8 +13,8 @@ app.secret_key = 'SomethingSuperSecretThatYoullNeverEverGuess'
 socketio = SocketIO()
 socketio.init_app(app)
 
-leaveGroups = []
 activeGroups = []
+departedUsers = []
 
 conn = pymysql.connect(host='localhost',
 						port=3306,
@@ -78,10 +78,7 @@ def loginAuth():
 def home():
 	try:
 		session['email']
-		for index, data in enumerate(leaveGroups):
-			if data[0] == session['email'] and data[1] is True:
-				session.pop('group')
-				del leaveGroups[index]
+		cleanDepartedUsers()
 	except:
 		return redirect('/login')
 	return render_template('home.html')
@@ -98,7 +95,6 @@ def createGroup():
 def createGroupAuth():
 	try:
 		session['group']
-		print(session['group'])
 		error = 'You are already part of a group!'
 		return render_template('createGroup.html', error=error)
 	except:
@@ -109,7 +105,6 @@ def createGroupAuth():
 			newGroup = Group(groupName, User.fetchUsername(session['email'], conn))
 			activeGroups.append(newGroup)
 			session['group'] = newGroup.name
-			print(activeGroups)
 			newGroup.startDJRotateThread()
 			return redirect('/group')
 		else:
@@ -137,14 +132,17 @@ def joinGroup(group):
 @app.route('/isDJ/<socketID>', methods=['GET', 'POST'])
 def isDJ(socketID):
 	socketID = socketID[8:]
+	group = getGroupObject(session['group'])
+	if group is None:
+		return json.dumps({'isDJ': False})
 	try:
-		group = getGroupObject(session['group'])
 		group.getMutex().acquire()
 		clients = group.getClients()
 		if socketID == clients[group.getThreadIndex()]:
 			return json.dumps({'isDJ': True})
 	finally:
-		group.getMutex().release()
+		if group is not None:
+			group.getMutex().release()
 	return json.dumps({'isDJ': False})
 
 @app.route('/saveSong/<songID>', methods=['GET', 'POST'])
@@ -157,26 +155,30 @@ def saveSong(songID):
 
 @app.route('/getMemberCount')
 def getMemberCount():
+	group = getGroupObject(session['group'])
+	if group is None:
+		return json.dumps({'memberCount': -1})
 	try:
-		group = getGroupObject(session['group'])
 		group.getMutex().acquire()
 		clients = group.getClients()
 		jsonResponse = json.dumps({'memberCount': len(clients)})
 	finally:
-		group.getMutex().release()
+		if group is not None:
+			group.getMutex().release()
 	return jsonResponse
 
 @socketio.on('joinGroup', namespace='/group')
 def joinGroup(message):
+	group = getGroupObject(session['group'])
+	if group is None:
+		return
 	try:
-		group = getGroupObject(session['group'])
 		group.getMutex().acquire()
 		clients = group.getClients()
-		print(clients)
 		clients.append(request.sid)
-		print(clients)
 	finally:
-		group.getMutex().release()
+		if group is not None:
+			group.getMutex().release()
 	join_room(session['group'])
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
@@ -193,13 +195,19 @@ def sendMessage(message):
 @socketio.on('broadcastSong', namespace='/group')
 def fetchSong(message):
 	group = getGroupObject(session['group'])
+	if group is None:
+		return
 	group.setCurrentSong(message['msg'])
 	emit('video', {'msg': message['msg']}, room=session['group'])
 
 @socketio.on('leaveGroup', namespace='/group')
 def leaveGroup(message):
+	if not activeGroups:
+		return
+	group = getGroupObject(session['group'])
+	if group is None:
+		return
 	try:
-		group = getGroupObject(session['group'])
 		group.getMutex().acquire()
 		clients = group.getClients()
 		print(clients)
@@ -211,8 +219,9 @@ def leaveGroup(message):
 			activeGroups.remove(group)
 		print(activeGroups)
 	finally:
-		group.getMutex().release()
-	leaveGroups.append([session['email'], True])
+		if group is not None:
+			group.getMutex().release()
+	departedUsers.append([session['email'], True])
 	leave_room(session['group'])
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
@@ -222,13 +231,18 @@ def leaveGroup(message):
 def disconnect():
 	print("DISCONNECTED")
 	leaveGroup(None)
-	logout()
 
 def getGroupObject(name):
 	for group in activeGroups:
 		if group.getName() == name:
 			return group
 	return None
+
+def cleanDepartedUsers():
+	for index, data in enumerate(departedUsers):
+		if data[0] == session['email'] and data[1] is True:
+			session.pop('group')
+			del departedUsers[index]
 
 @app.route('/availableGroups')
 def availableGroups():
@@ -247,7 +261,7 @@ def getSavedSongs():
 def logout():
 	session.clear()
 	return redirect('/')
-'''
+
 #404 errorhandler
 @app.errorhandler(404)
 def page_not_found(error):
@@ -259,6 +273,6 @@ def page_not_found(error):
 def page_not_found(error):
 	#render template when unauthorized access error occurs
 	return render_template('unauthorizedAccess.html')
-'''
+
 if __name__ == '__main__':
 	socketio.run(app)

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Saved Songs</title>
+    </head>
+    <body>
+        {% if not songs %}
+            <center>There's nothing to see here 😥</center>
+            <center>Join a group and save some songs!</center>
+        {% else %} 
+    		{% for song in songs %}
+                <iframe width='560' height='315' src='https://www.youtube.com/embed/{{song.songID}}?controls=0'></iframe>
+    		{% endfor %}
+        {% endif %}
+    </body>
+</html>

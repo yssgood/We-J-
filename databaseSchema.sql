@@ -18,3 +18,11 @@ CREATE TABLE MusicGroup(
     PRIMARY KEY (groupName),
     FOREIGN KEY(ownerEmail) REFERENCES User(email)
 );
+
+DROP TABLE IF EXISTS `SavedSongs`;
+CREATE TABLE SavedSongs (
+    email VARCHAR(25), 
+    songID VARCHAR(25),
+    PRIMARY KEY(email, songID), 
+    FOREIGN KEY(email) REFERENCES User(email)
+);

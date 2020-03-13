@@ -1,33 +1,66 @@
-import pymysql.cursors
 import hashlib
+import pymysql.cursors
 
 class User:
-	def __init__(self, email, username = None):
-		self.email = email
-		self.username = username
-
-	def insertRegisterDetails(self, conn, password):
+	@staticmethod
+	def insertRegisterDetails(email, username, password, conn):
 		cursor = conn.cursor()
 		query = 'INSERT INTO User(email, username, password) VALUES(%s, %s, %s)'
 		password = hashlib.sha256(password.encode()).hexdigest()
-		cursor.execute(query, (self.email, self.username, password))
+		cursor.execute(query, (email, username, password))
 		conn.commit()
 		cursor.close()
 
-	def validateUser(self, conn, password):
+	@staticmethod
+	def checkIfUserExists(email, conn):
 		cursor = conn.cursor()
-		password = hashlib.sha256(password.encode()).hexdigest()
-		query = 'SELECT * FROM User WHERE email = %s and password = %s LIMIT 1'
-		cursor.execute(query, (self.email, password))
+		query = 'SELECT * FROM User WHERE email = %s LIMIT 1'
+		cursor.execute(query, email)
 		data = cursor.fetchone()
 		cursor.close()
 		return data
 
-	def fetchAndUpdateUsername(self, conn):
+	@staticmethod
+	def validateUser(email, password, conn):
+		cursor = conn.cursor()
+		password = hashlib.sha256(password.encode()).hexdigest()
+		query = 'SELECT * FROM User WHERE email = %s and password = %s LIMIT 1'
+		cursor.execute(query, (email, password))
+		data = cursor.fetchone()
+		cursor.close()
+		return data
+
+	@staticmethod
+	def fetchUsername(email, conn):
 		cursor = conn.cursor()
 		query = 'SELECT * FROM User WHERE email = %s LIMIT 1'
-		cursor.execute(query, (self.email))
+		cursor.execute(query, (email))
 		data = cursor.fetchone()
-		print(data)
-		self.username = data['username']
 		cursor.close()
+		return data['username']
+
+	@staticmethod
+	def checkForDuplicateSavedSong(email, songID, conn):
+		cursor = conn.cursor()
+		query = 'SELECT * FROM SavedSongs WHERE email = %s AND songID = %s LIMIT 1'
+		cursor.execute(query, (email, songID))
+		data = cursor.fetchone()
+		cursor.close()
+		return data
+
+	@staticmethod
+	def saveSong(email, songID, conn):
+		cursor = conn.cursor()
+		query = 'INSERT INTO SavedSongs(email, songID) VALUES(%s, %s)'
+		cursor.execute(query, (email, songID))
+		conn.commit()
+		cursor.close()
+
+	@staticmethod
+	def getSavedSongs(email, conn):
+		cursor = conn.cursor()
+		query = 'SELECT * FROM SavedSongs WHERE email = %s'
+		cursor.execute(query, (email))
+		data = cursor.fetchall()
+		cursor.close()
+		return data

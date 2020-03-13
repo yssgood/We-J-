@@ -1,4 +1,5 @@
 var socket;
+var currentSong = 0;
 $(document).ready(function() {
     socket = io.connect('http://' + document.domain + ':' + location.port + '/group');
     socket.on('connect', function() {
@@ -8,12 +9,27 @@ $(document).ready(function() {
         $('#chat').val($('#chat').val() + data.msg + '\n');
     });
     socket.on('video', function(data) {
+        currentSong = data.msg;
         $("#EmbeddedSong iframe").remove();
         $("#EmbeddedSong").append("<iframe width='560' height='315' src='https://www.youtube.com/embed/" + data.msg + "?autoplay=1&controls=0' allow='autoplay'></iframe>");
     });
     document.getElementById("leaveButton").onclick = function() {
         socket.emit('leaveGroup', {}, function() {
             window.location.href = '/home';
+        });
+    };
+    document.getElementById("saveSongButton").onclick = function() {
+        $.ajax({
+            type: 'POST',
+            url: '/saveSong/' + encodeURIComponent(currentSong),
+            success: function(response) {
+               if(JSON.parse(response).savedSong){
+                 alert("Successfully saved the song!");
+               }
+               else{
+                alert("Unable to save the song! Please try again.");
+               }
+            }
         });
     };
     $('#messageInput').on('keypress', function(key) {
@@ -34,6 +50,16 @@ $(document).ready(function() {
             });
         }
     });
+    function showMemberCount() {
+        $.ajax({
+            type: 'GET',
+            url: '/getMemberCount',
+            success: function(response) {
+                $("#MemberCount p").remove();
+                $("#MemberCount").append("<p>Active Members: " + JSON.parse(response).memberCount + "</p>");
+            }
+        });
+    }
     function showInputFieldToDJ() {
         $.ajax({
             type: 'POST',
@@ -47,7 +73,9 @@ $(document).ready(function() {
                 }
             }
         });
-        return true;
     }
-    setInterval(showInputFieldToDJ, 1000);
+    setInterval(function() {
+        showMemberCount();
+        showInputFieldToDJ();
+    }, 1000);
 });

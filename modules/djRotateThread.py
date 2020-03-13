@@ -6,18 +6,23 @@ class DJRotateThread(Thread):
 		self.djIndex = 0
 		self.clients = []
 		self.stop = event
+		self.mutex = Lock()
 
 	def run(self):
 		while not self.stop.wait(10):
 			try:
+				self.mutex.acquire()
 				if len(self.clients) > 0:
 					self.djIndex = (self.djIndex + 1) % len(self.clients)
 					print(self.djIndex)
 			finally:
-				pass
+				self.mutex.release()
 
 	def getIndex(self):
 		return self.djIndex
 
 	def getClients(self):
 		return self.clients
+
+	def getThreadMutex(self):
+		return self.mutex

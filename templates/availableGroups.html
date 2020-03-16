@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Music Groups</title>
+    </head>
+    <body>
+        {% if not activeGroups %}
+            <center>There's nothing to see here 😥</center>
+            <center>Create a group to get this party started!</center>
+        {% else %} 
+    		{% for group in activeGroups %}
+    			<p>{{group.name}} created by {{group.creatorUsername}}</p>
+    			<form action="/joinGroup/{{group.name}}" method="POST">
+                    <input style="background-color: red;" type="submit" value="Join Group">
+                </form>
+    		{% endfor %}
+        {% endif %}
+    </body>
+</html>

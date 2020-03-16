@@ -1,4 +1,5 @@
 var socket;
+var currentSong = 0;
 $(document).ready(function() {
     socket = io.connect('http://' + document.domain + ':' + location.port + '/group');
     socket.on('connect', function() {
@@ -7,25 +8,40 @@ $(document).ready(function() {
     socket.on('update', function(data) {
         $('#chat').val($('#chat').val() + data.msg + '\n');
     });
-    socket.on('message', function(data) {
+    socket.on('video', function(data) {
+        currentSong = data.msg;
         $("#EmbeddedSong iframe").remove();
-        $("#EmbeddedSong").append("<iframe width='560' height='315' src='https://www.youtube.com/embed/" + data.msg + "?autoplay=1&controls=0&loop=1'></iframe>");
+        $("#EmbeddedSong").append("<iframe width='560' height='315' src='https://www.youtube.com/embed/" + data.msg + "?autoplay=1&controls=0' allow='autoplay'></iframe>");
     });
-    document.getElementById("leaveButton").onclick = function () {
-        socket.emit('leaveGroup', {}, function(){
-            socket.disconnect();
-            window.location.href = "/home";
+    document.getElementById("leaveButton").onclick = function() {
+        socket.emit('leaveGroup', {}, function() {
+            window.location.href = '/home';
         });
-    }
-    $('#message').on('keypress', function(key) {
+    };
+    document.getElementById("saveSongButton").onclick = function() {
+        $.ajax({
+            type: 'POST',
+            aysnc: false,
+            url: '/saveSong/' + encodeURIComponent(currentSong),
+            success: function(response) {
+               if(JSON.parse(response).savedSong){
+                 alert("Successfully saved the song!");
+               }
+               else{
+                alert("Unable to save the song! Please try again.");
+               }
+            }
+        });
+    };
+    $('#messageInput').on('keypress', function(key) {
         if (key.keyCode == 13) {
-            message = $('#message').val();
-            $('#message').val('');
+            var message = $('#messageInput input').val();
+            $('#messageInput input').val('');
             socket.emit('sendMessage', {
                 msg: message
             });
         }
-    })
+    });
     $('#DJInput').on('keypress', function(key) {
         if (key.keyCode == 13) {
             var song = $('#DJInput input').val();
@@ -34,10 +50,26 @@ $(document).ready(function() {
                 msg: song
             });
         }
-    })
+    });
+    function showMemberCount() {
+        $.ajax({
+            type: 'GET',
+            aysnc: false,
+            url: '/getMemberCount',
+            success: function(response) {
+                var memberCount = JSON.parse(response).memberCount;
+                if(memberCount == -1){
+                    window.location.href = '/home';
+                }
+                $("#MemberCount p").remove();
+                $("#MemberCount").append("<p>Active Members: " + memberCount + "</p>");
+            }
+        });
+    }
     function showInputFieldToDJ() {
         $.ajax({
             type: 'POST',
+            aysnc: false,
             url: '/isDJ/' + encodeURIComponent(socket.id),
             success: function(response) {
                 if (JSON.parse(response).isDJ) {
@@ -48,7 +80,9 @@ $(document).ready(function() {
                 }
             }
         });
-        return false;
     }
-    setInterval(showInputFieldToDJ, 1000);
+    setInterval(function() {
+        showMemberCount();
+        showInputFieldToDJ();
+    }, 1000);
 });

@@ -2,17 +2,24 @@
 <html>
     <head>
         <title>Register</title>
+        <link href="../static/css/register.css" type="text/css" rel="stylesheet">
     </head>
     <body>
-    	{% if error %}
-			<p class="error"><strong>Error:</strong> {{error}}</p>
-		{% endif %}
-        <form action="/registerAuth" method="POST">
-        	<input type="email" name="email" placeholder="email" required></br>
-        	<input type="username" name="username" placeholder="username" required></br>
-        	<input type="password" name="password" placeholder="password" pattern=".{6,}" required title="6 characters minimum"></br>
-        	<input type="submit" value=Register />
-        	<a href="/login">Login</a>
-        </form>
+        <div class="container">
+            <form action="/registerAuth" method="POST">
+                <input type="email" name="email" placeholder="email" required></br>
+                <input type="username" name="username" placeholder="username" required></br>
+                <input type="password" name="password" placeholder="password" pattern=".{6,}" required title="6 characters minimum"></br>
+                <input type="submit" value=Register />
+                <a href="/login">
+                    <input type="button" value="Login" />
+                </a>
+            </form>
+            <div class="error">
+                {% if error %}
+                    <p class="error"><strong>Error:</strong> {{error}}</p>
+                {% endif %}
+            </div>
+        </div>
     </body>
 </html>

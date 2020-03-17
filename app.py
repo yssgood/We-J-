@@ -51,7 +51,7 @@ def registerAuth():
 		session['username'] = username
 		return redirect('/home')
 	else:
-		error = 'User already exists, please enter another email'
+		error = 'User already exists, enter another email'
 		return render_template('register.html', error=error)
 
 @app.route('/login')

@@ -27,9 +27,6 @@ $(document).ready(function() {
                if(JSON.parse(response).savedSong){
                  alert("Successfully saved the song!");
                }
-               else{
-                alert("Unable to save the song! Please try again.");
-               }
             }
         });
     };
@@ -49,6 +46,16 @@ $(document).ready(function() {
             socket.emit('fetchSong', {
                 msg: song
             });
+        }
+    });
+    $('#reportProblem').on('keypress', function(key) {
+        if (key.keyCode == 13) {
+            var report = $('#reportProblem input').val();
+            $('#reportProblem input').val('');
+            socket.emit('reportProblem', {
+                msg: report
+            });
+            alert("Successfully submitted report!");
         }
     });
     function showMemberCount() {

@@ -1,5 +1,22 @@
 body {
-    background-color: #b1b1b1;
+  margin-top: 0;
+  margin-left: 0;
+  font-size: 20px;
+  margin-right: 0;
+  font-family: verdana;
+  background-color: #b1b1b1;
+}
+
+.nav {
+  overflow: hidden;
+  background-color: #222;
+}
+
+.nav a {
+  float: left;
+  padding: 15px;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .container {

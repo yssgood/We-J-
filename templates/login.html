@@ -2,16 +2,23 @@
 <html>
     <head>
         <title>Login</title>
+        <link href="../static/css/login.css" type="text/css" rel="stylesheet">
     </head>
     <body>
-    	{% if error %}
-			<p class="error"><strong>Error:</strong> {{error}}</p>
-		{% endif %}
-        <form action="/loginAuth" method="POST">
-        	<input type="email" name="email" placeholder="email" required></br>
-        	<input type="password" name="password" placeholder="password" required></br>
-        	<input type="submit" value=Login />
-        	<a href="/register">Register</a>
-        </form>
+        <div class="container">
+            <form action="/loginAuth" method="POST">
+                <input type="email" name="email" placeholder="email" required></br>
+                <input type="password" name="password" placeholder="password" required></br>
+                <input type="submit" value=Login />
+                <a href="/register">
+                    <input type="button" value="Register" />
+                </a>
+            </form>
+            <div class="error">
+		        {% if error %}
+		            <p class="error"><strong>Error:</strong> {{error}}</p>
+		        {% endif %}
+	    	</div>
+        </div>
     </body>
 </html>

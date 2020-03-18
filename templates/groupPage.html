@@ -5,25 +5,36 @@
         <script type="text/javascript" src="{{url_for('static', filename='js/lib/jquery-3.4.1.min.js')}}"></script>
         <script type="text/javascript" src="{{url_for('static', filename='js/lib/socket.io.js')}}"></script>
         <script type="text/javascript" src="{{url_for('static', filename='js/groupPage.js')}}"></script>
+        <link href="../static/css/groupPage.css" type="text/css" rel="stylesheet">
     </head>
     <body>
-    	<h1>{{ group }}</h1>
-        <textarea id="chat" cols="50" rows="20"></textarea>
-        <br>
-        <div id="messageInput">
-            <input type="text">
+        <div class="nav">
+            <a href="/">We.J</a>
+            <a id="leaveButton">Leave Group!</a>
         </div>
-        <br>
-        <button id="leaveButton">Leave Group!</button>
-        <br>
-        <br>
-        <div id="DJInput">
-            <input type="text">
+        <div class="split left">
+            <div class="centered">
+                <a>{{ group }}</a>
+                <div id="MemberCount"></div>
+                <textarea id="chat" cols="50" rows="20"></textarea>
+                <div id="messageInput">
+                    <input type="text" placeholder="Enter a Message">
+                </div>
+                <br>
+                <div id="reportProblem">
+                    <input type="text" placeholder="Report Problem">
+                </div>
+            </div>
         </div>
-        <div id="MemberCount"></div>
-        <br>
-        <button id='saveSongButton'>Save Song!</button>
-        <br>
-        <div id="EmbeddedSong"></div>
+        <div class="split right">
+            <div class="centered">
+                <div id="DJInput">
+                    <input type="text" placeholder="Song or Youtube URL">
+                </div>
+                <br>
+                <div id="EmbeddedSong"></div>
+                <button id='saveSongButton'>Save Song!</button>
+            </div>
+        </div>
     </body>
 </html>

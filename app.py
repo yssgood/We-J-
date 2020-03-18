@@ -1,6 +1,7 @@
 import json
 import datetime
 import pymysql.cursors
+from youtube_search import YoutubeSearch
 from urllib.parse import parse_qs, urlparse
 from flask_socketio import emit, join_room, leave_room, SocketIO
 from flask import Flask, redirect, render_template, request, session
@@ -196,8 +197,11 @@ def sendMessage(message):
 @socketio.on('fetchSong', namespace='/group')
 def fetchSong(message):
 	try:
-		videoID = parse_qs(urlparse(message['msg']).query)['v'][0]
-		message['msg'] = videoID
+		urlRes = urlparse(message['msg'])
+		if all([urlRes.scheme, urlRes.netloc, urlRes.path]):
+			message['msg'] = parse_qs(urlRes.query)['v'][0]
+		else:
+			message['msg'] = (YoutubeSearch(message['msg'], max_results=1).to_dict())[0]["id"]
 	except:
 		pass
 	group = getGroupObject(session['group'])
@@ -232,6 +236,22 @@ def leaveGroup(message):
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
 		 + session['username'] + ' left the group.'}, room=session['group'])
+
+@socketio.on('reportProblem', namespace='/group')
+def reportProblem(message):
+	subject = 'WE.J PROBLEM REPORT'
+	sender = 'wejreportproblem@gmail.com'
+	recipient = 'wejreportproblem@gmail.com'
+	password = 'SomethingSuperSecretThatYoullNeverEverGuess'
+	email = 'From: ' + sender + '\nTo: ' + recipient + '\nSubject: ' + subject + '\n' + message['msg']
+	try:
+		server = smtplib.SMTP('smtp.gmail.com', 587)
+		server.starttls()
+		server.login(sender, password)
+		server.sendmail(sender, recipient, email)
+		server.close()
+	except:
+		pass
 
 @socketio.on('disconnect', namespace='/group')
 def disconnect():

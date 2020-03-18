@@ -1,0 +1,22 @@
+body {
+  margin: 0;
+  font-size: 20px;
+  font-family: verdana;
+}
+
+.nav {
+  overflow: hidden;
+  background-color: #222;
+}
+
+.nav a {
+  float: left;
+  padding: 15px;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.content {
+  padding: 300px;
+  background-color: #b1b1b1;
+}

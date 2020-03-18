@@ -1,8 +1,9 @@
 import json
 import datetime
 import pymysql.cursors
-from flask_socketio import SocketIO, emit, join_room, leave_room
-from flask import Flask, render_template, request, session, redirect
+from urllib.parse import parse_qs, urlparse
+from flask_socketio import emit, join_room, leave_room, SocketIO
+from flask import Flask, redirect, render_template, request, session
 
 from modules.user import User
 from modules.group import Group
@@ -192,8 +193,13 @@ def sendMessage(message):
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
 		 + session['username'] + ': ' + message['msg']}, room=session['group'])
 
-@socketio.on('broadcastSong', namespace='/group')
+@socketio.on('fetchSong', namespace='/group')
 def fetchSong(message):
+	try:
+		videoID = parse_qs(urlparse(message['msg']).query)['v'][0]
+		message['msg'] = videoID
+	except:
+		pass
 	group = getGroupObject(session['group'])
 	if group is None:
 		return

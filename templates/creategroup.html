@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Create Group</title>
-	</head>
-	<body>
-		{% if error %}
-			<p class="error"><strong>Error:</strong> {{error}}</p>
-		{% endif %}
-		<form action="/createGroupAuth" method="POST">
-			<input type="text" name="GroupName" placeholder="name" required></br>
-			<input type="submit" value=GroupName />
-	</body>
+    <head>
+        <title>Create Group</title>
+        <link href="../static/css/createGroup.css" type="text/css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container">
+            <form action="/createGroupAuth" method="POST">
+				<input type="text" name="GroupName" placeholder="name" required></br>
+				<input type="submit" value=Submit />
+            </form>
+            <div class="error">
+		        {% if error %}
+		            <p class="error"><strong>Error:</strong> {{error}}</p>
+		        {% endif %}
+	    	</div>
+        </div>
+    </body>
 </html>

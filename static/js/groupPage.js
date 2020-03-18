@@ -46,7 +46,7 @@ $(document).ready(function() {
         if (key.keyCode == 13) {
             var song = $('#DJInput input').val();
             $('#DJInput input').val('');
-            socket.emit('broadcastSong', {
+            socket.emit('fetchSong', {
                 msg: song
             });
         }

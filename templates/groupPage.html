@@ -9,31 +9,37 @@
     </head>
     <body>
         <div class="nav">
-            <a href="/">We.J</a>
-            <a id="leaveButton">Leave Group!</a>
+            <a>We.J</a>
+            <a id="leaveButton">Leave Group</a>
         </div>
-        <div class="split left">
-            <div class="centered">
-                <a>{{ group }}</a>
+        <div class="divide left">
+            <div class="center">
+                <a>{{group}}</a>
                 <div id="MemberCount"></div>
+                <div id="RatingAverage"></div>
                 <textarea id="chat" cols="50" rows="20"></textarea>
                 <div id="messageInput">
                     <input type="text" placeholder="Enter a Message">
                 </div>
                 <br>
+                {% if rated is not defined %}
+                    <div id="rateGroup">
+                        <input type="text" maxlength="1" placeholder="Rate Group [1 - 5]">
+                    </div>
+                {% endif %}
                 <div id="reportProblem">
                     <input type="text" placeholder="Report Problem">
                 </div>
             </div>
         </div>
-        <div class="split right">
-            <div class="centered">
+        <div class="divide right">
+            <div class="center">
                 <div id="DJInput">
                     <input type="text" placeholder="Song or Youtube URL">
                 </div>
                 <br>
                 <div id="EmbeddedSong"></div>
-                <button id='saveSongButton'>Save Song!</button>
+                <button id='saveSongButton'>Save Song</button>
             </div>
         </div>
     </body>

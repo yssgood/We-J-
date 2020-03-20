@@ -1,0 +1,39 @@
+body {
+  margin: 0;
+  font-size: 20px;
+  font-family: verdana;
+  background-color: #b1b1b1;
+}
+
+.nav {
+  overflow: hidden;
+  background-color: #222;
+}
+
+.nav a {
+  float: left;
+  padding: 15px;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+#songs {
+  width: 100%;
+}
+
+#songs th {
+  padding: 5px;
+  border: 1px solid;
+  text-align: center;
+}
+
+#songs td {
+  padding: 15px;
+  border: 1px solid;
+  text-align: center;
+}
+
+#songs th {
+  color: white;
+  background-color: #403030;
+}

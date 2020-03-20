@@ -2,15 +2,33 @@
 <html>
     <head>
         <title>Saved Songs</title>
+        <link href="../static/css/savedSongs.css" type="text/css" rel="stylesheet">
     </head>
     <body>
+        <div class="nav">
+            <a href="/">We.J</a>
+            <a href="/createGroup">Create Group</a>
+            <a href="/availableGroups">Available Groups</a>
+            <a href="/logout">Logout</a>
+        </div>
         {% if not songs %}
             <center>There's nothing to see here 😥</center>
             <center>Join a group and save some songs!</center>
-        {% else %} 
-    		{% for song in songs %}
-                <iframe width='560' height='315' src='https://www.youtube.com/embed/{{song.songID}}?controls=0'></iframe>
-    		{% endfor %}
+        {% else %}
+            <table id="songs">
+                <tr>
+                    <th>Song</th>
+                    <th>YouTube ID</th>
+                </tr>
+                {% for song in songs %}
+                    <tr>
+                        <td>                
+                            <iframe width='560' height='315' src='https://www.youtube.com/embed/{{song.songID}}?controls=0'></iframe>
+                        </td>
+                        <td>{{song.songID}}</td>
+                    </tr>
+                {% endfor %}
+            </table>
         {% endif %}
     </body>
 </html>

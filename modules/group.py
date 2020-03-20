@@ -19,6 +19,14 @@ class Group:
 		cursor.close()
 
 	@staticmethod
+	def insertGroupRating(email, name, rating, conn):
+		cursor = conn.cursor()
+		query = 'INSERT INTO RateGroup(email, groupName, rating) VALUES(%s, %s, %s)'
+		cursor.execute(query, (email, name, rating))
+		conn.commit()
+		cursor.close()
+
+	@staticmethod
 	def checkIfGroupExists(name, conn):
 		cursor = conn.cursor()
 		query = 'SELECT * FROM MusicGroup WHERE groupName = %s LIMIT 1'
@@ -28,8 +36,28 @@ class Group:
 		return data
 
 	@staticmethod
+	def checkIfGroupIsRated(email, name, conn):
+		cursor = conn.cursor()
+		query = 'SELECT * FROM RateGroup WHERE email = %s AND groupName = %s LIMIT 1'
+		cursor.execute(query, (email, name))
+		data = cursor.fetchone()
+		cursor.close()
+		return data
+
+	@staticmethod
+	def getRatings(name, conn):
+		cursor = conn.cursor()
+		query = 'SELECT rating FROM RateGroup WHERE groupName = %s'
+		cursor.execute(query, (name))
+		data = cursor.fetchall()
+		cursor.close()
+		return data
+
+	@staticmethod
 	def removeGroup(name, conn):
 		cursor = conn.cursor()
+		query = 'DELETE FROM RateGroup WHERE groupName = %s'
+		cursor.execute(query, (name))
 		query = 'DELETE FROM MusicGroup WHERE groupName = %s'
 		cursor.execute(query, (name))
 		conn.commit()

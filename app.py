@@ -16,7 +16,6 @@ socketio = SocketIO()
 socketio.init_app(app)
 
 activeGroups = []
-departedUsers = []
 
 conn = pymysql.connect(host='localhost',
 						port=3306,
@@ -80,10 +79,9 @@ def loginAuth():
 def home():
 	try:
 		session['email']
-		cleanDepartedUsers()
+		return render_template('home.html')
 	except:
 		return redirect('/login')
-	return render_template('home.html')
 
 @app.route('/createGroup')
 def createGroup():
@@ -95,30 +93,28 @@ def createGroup():
 
 @app.route('/createGroupAuth', methods=['GET', 'POST'])
 def createGroupAuth():
-	try:
-		session['group']
-		error = 'You are already part of a group!'
+	email = session['email']
+	groupName = request.form['GroupName']
+	if not Group.checkIfGroupExists(groupName, conn):
+		Group.insertGroupDetails(email, groupName, conn)
+		newGroup = Group(groupName, User.fetchUsername(session['email'], conn))
+		activeGroups.append(newGroup)
+		session['group'] = newGroup.name
+		newGroup.startDJRotateThread()
+		return redirect('/group')
+	else:
+		error = 'A group with this name already exists! Please try again.'
 		return render_template('createGroup.html', error=error)
-	except:
-		email = session['email']
-		groupName = request.form['GroupName']
-		if not Group.checkIfGroupExists(groupName, conn):
-			Group.insertGroupDetails(email, groupName, conn)
-			newGroup = Group(groupName, User.fetchUsername(session['email'], conn))
-			activeGroups.append(newGroup)
-			session['group'] = newGroup.name
-			newGroup.startDJRotateThread()
-			return redirect('/group')
-		else:
-			error = 'A group with this name already exists! Please try again.'
-			return render_template('createGroup.html', error=error)
 
 @app.route('/group')
 def group():
 	try:
 		session['email']
 		session['group']
-		return render_template('groupPage.html', group=session['group'])
+		if not Group.checkIfGroupIsRated(session['email'], session['group'], conn):
+			return render_template('groupPage.html', group=session['group'])
+		else:
+			return render_template('groupPage.html', group=session['group'], rated=True)
 	except:
 		return redirect('/login')
 
@@ -131,56 +127,81 @@ def joinGroup(group):
 	except:
 		return redirect('/login')
 
-@app.route('/isDJ/<socketID>', methods=['GET', 'POST'])
+@app.route('/isDJ/<socketID>')
 def isDJ(socketID):
-	socketID = socketID[8:]
-	group = getGroupObject(session['group'])
-	if group is None:
-		return json.dumps({'isDJ': False})
 	try:
+		group = getGroupObject(session['group'])
+		if group is None:
+			return json.dumps({'isDJ': False})
 		group.getMutex().acquire()
 		clients = group.getClients()
 		if socketID == clients[group.getThreadIndex()]:
+			try:
+				group.getMutex().release()
+			except:
+				pass
 			return json.dumps({'isDJ': True})
 	finally:
-		if group is not None:
+		try:
 			group.getMutex().release()
+		except:
+			pass
 	return json.dumps({'isDJ': False})
 
 @app.route('/saveSong/<songID>', methods=['GET', 'POST'])
 def saveSong(songID):
-	if (songID == "0") or (User.checkForDuplicateSavedSong(session['email'], songID, conn)):
-		return json.dumps({'savedSong': False})
-	else:
-		User.saveSong(session['email'], songID, conn)
-		return json.dumps({'savedSong': True})
+	try:
+		if (songID == "0") or (User.checkForDuplicateSavedSong(session['email'], songID, conn)):
+			return json.dumps({'savedSong': False})
+		else:
+			User.saveSong(session['email'], songID, conn)
+			return json.dumps({'savedSong': True})
+	except:
+			return json.dumps({'savedSong': True})	
 
 @app.route('/getMemberCount')
 def getMemberCount():
-	group = getGroupObject(session['group'])
-	if group is None:
-		return json.dumps({'memberCount': -1})
 	try:
+		group = getGroupObject(session['group'])
+		if group is None:
+			return json.dumps({'memberCount': -1})
 		group.getMutex().acquire()
 		clients = group.getClients()
 		jsonResponse = json.dumps({'memberCount': len(clients)})
 	finally:
-		if group is not None:
+		try:
 			group.getMutex().release()
+		except:
+			pass
 	return jsonResponse
+
+@app.route('/getRatingAverage')
+def getRatingAverage():
+	try:
+		ratingSum = 0
+		ratings = Group.getRatings(session['group'], conn)
+		if len(ratings) == 0:
+			return json.dumps({'averageRating': 5})
+		for rating in ratings:
+			ratingSum += rating['rating']
+		return json.dumps({'averageRating': ratingSum / len(ratings)})
+	except:
+		return json.dumps({'averageRating': -1})
 
 @socketio.on('joinGroup', namespace='/group')
 def joinGroup(message):
-	group = getGroupObject(session['group'])
-	if group is None:
-		return
 	try:
+		group = getGroupObject(session['group'])
+		if group is None:
+			return
 		group.getMutex().acquire()
 		clients = group.getClients()
 		clients.append(request.sid)
 	finally:
-		if group is not None:
+		try:
 			group.getMutex().release()
+		except:
+			pass
 	join_room(session['group'])
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
@@ -202,49 +223,29 @@ def fetchSong(message):
 			message['msg'] = parse_qs(urlRes.query)['v'][0]
 		else:
 			message['msg'] = (YoutubeSearch(message['msg'], max_results=1).to_dict())[0]["id"]
+		group = getGroupObject(session['group'])
+		if group is None:
+			return
+		group.setCurrentSong(message['msg'])
+		emit('video', {'msg': message['msg']}, room=session['group'])
 	except:
 		pass
-	group = getGroupObject(session['group'])
-	if group is None:
-		return
-	group.setCurrentSong(message['msg'])
-	emit('video', {'msg': message['msg']}, room=session['group'])
 
-@socketio.on('leaveGroup', namespace='/group')
-def leaveGroup(message):
-	if not activeGroups:
-		return
-	group = getGroupObject(session['group'])
-	if group is None:
-		return
+@socketio.on('rateGroup', namespace='/group')
+def rateGroupRating(message):
 	try:
-		group.getMutex().acquire()
-		clients = group.getClients()
-		print(clients)
-		clients.remove(request.sid)
-		print(clients)
-		print(activeGroups)
-		if not clients:
-			Group.removeGroup(session['group'], conn)
-			activeGroups.remove(group)
-		print(activeGroups)
-	finally:
-		if group is not None:
-			group.getMutex().release()
-	departedUsers.append([session['email'], True])
-	leave_room(session['group'])
-	emit('update',
-		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
-		 + session['username'] + ' left the group.'}, room=session['group'])
+		Group.insertGroupRating(session['email'], session['group'], int(message['msg']), conn)
+	except:
+		pass
 
 @socketio.on('reportProblem', namespace='/group')
 def reportProblem(message):
-	subject = 'WE.J PROBLEM REPORT'
-	sender = 'wejreportproblem@gmail.com'
-	recipient = 'wejreportproblem@gmail.com'
-	password = 'SomethingSuperSecretThatYoullNeverEverGuess'
-	email = 'From: ' + sender + '\nTo: ' + recipient + '\nSubject: ' + subject + '\n' + message['msg']
 	try:
+		subject = 'WE.J PROBLEM REPORT'
+		sender = 'wejreportproblem@gmail.com'
+		recipient = 'wejreportproblem@gmail.com'
+		password = 'SomethingSuperSecretThatYoullNeverEverGuess'
+		email = 'From: ' + sender + '\nTo: ' + recipient + '\nSubject: ' + subject + '\n' + message['msg']
 		server = smtplib.SMTP('smtp.gmail.com', 587)
 		server.starttls()
 		server.login(sender, password)
@@ -253,9 +254,33 @@ def reportProblem(message):
 	except:
 		pass
 
+@socketio.on('leaveGroup', namespace='/group')
+def leaveGroup(message):
+	try:
+		if not activeGroups:
+			return
+		group = getGroupObject(session['group'])
+		if group is None:
+			return
+		group.getMutex().acquire()
+		clients = group.getClients()
+		clients.remove(request.sid)
+		if not clients:
+			Group.removeGroup(session['group'], conn)
+			activeGroups.remove(group)
+	finally:
+		try:
+			group.getMutex().release()
+		except:
+			pass
+	leave_room(session['group'])
+	emit('update',
+		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
+		 + session['username'] + ' left the group.'}, room=session['group'])
+
 @socketio.on('disconnect', namespace='/group')
 def disconnect():
-	print("DISCONNECTED")
+	print("Disconnected Client: " + request.sid)
 	leaveGroup(None)
 
 def getGroupObject(name):
@@ -263,12 +288,6 @@ def getGroupObject(name):
 		if group.getName() == name:
 			return group
 	return None
-
-def cleanDepartedUsers():
-	for index, data in enumerate(departedUsers):
-		if data[0] == session['email'] and data[1] is True:
-			session.pop('group')
-			del departedUsers[index]
 
 @app.route('/availableGroups')
 def availableGroups():
@@ -281,7 +300,10 @@ def availableGroups():
 
 @app.route('/savedSongs')
 def getSavedSongs():
-	return render_template('savedSongs.html', songs=User.getSavedSongs(session['email'], conn))
+	try:
+		return render_template('savedSongs.html', songs=User.getSavedSongs(session['email'], conn))
+	except:
+		return redirect('/login')
 
 @app.route('/logout')
 def logout():

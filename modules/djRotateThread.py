@@ -14,7 +14,7 @@ class DJRotateThread(Thread):
 				self.mutex.acquire()
 				if len(self.clients) > 0:
 					self.djIndex = (self.djIndex + 1) % len(self.clients)
-					print(self.djIndex)
+					print('DJ Index: ' + str(self.djIndex))
 			finally:
 				self.mutex.release()
 

@@ -4,6 +4,7 @@ body {
   font-size: 20px;
   margin-right: 0;
   font-family: verdana;
+  background-color: #b1b1b1;
 }
 
 .nav {
@@ -19,7 +20,7 @@ body {
   text-decoration: none;
 }
 
-.split {
+.divide {
   width: 50%;
   height: 100%;
   position: fixed;
@@ -27,15 +28,13 @@ body {
 
 .left {
   left: 0;
-  background-color: #b1b1b1;
 }
 
 .right {
   right: 0;
-  background-color: #b1b1b1;
 }
 
-.centered {
+.center {
   top: 50%;
   left: 50%;
   position: absolute;

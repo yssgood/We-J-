@@ -48,6 +48,25 @@ $(document).ready(function() {
             });
         }
     });
+    $('#rateGroup').on('keypress', function(key) {
+        if (key.keyCode == 13) {
+            var rating = parseInt($('#rateGroup input').val());
+            console.log(rating);
+            console.log(Number.isInteger(rating));
+            console.log(!Number.isInteger(rating));
+            if(!Number.isInteger(rating) || rating < 1 || rating > 5){
+                alert("Please enter an integer rating between 1 and 5.")
+            }
+            else{
+                $('#rateGroup input').val('');
+                socket.emit('rateGroup', {
+                    msg: rating
+                });
+                $("#rateGroup input").hide();
+                alert("Successfully submitted rating!");
+            }
+        }
+    });
     $('#reportProblem').on('keypress', function(key) {
         if (key.keyCode == 13) {
             var report = $('#reportProblem input').val();
@@ -73,11 +92,26 @@ $(document).ready(function() {
             }
         });
     }
+    function showRatingAverage() {
+        $.ajax({
+            type: 'GET',
+            aysnc: false,
+            url: '/getRatingAverage',
+            success: function(response) {
+                var ratingAverage = JSON.parse(response).averageRating;
+                if(ratingAverage == -1){
+                    window.location.href = '/home';
+                }
+                $("#RatingAverage p").remove();
+                $("#RatingAverage").append("<p>Average Rating: " + ratingAverage + "</p>");
+            }
+        });
+    }
     function showInputFieldToDJ() {
         $.ajax({
-            type: 'POST',
+            type: 'GET',
             aysnc: false,
-            url: '/isDJ/' + encodeURIComponent(socket.id),
+            url: '/isDJ/' + encodeURIComponent(socket.id).slice(-32),
             success: function(response) {
                 if (JSON.parse(response).isDJ) {
                     $("#DJInput input").show();
@@ -90,6 +124,7 @@ $(document).ready(function() {
     }
     setInterval(function() {
         showMemberCount();
+        showRatingAverage();
         showInputFieldToDJ();
     }, 1000);
 });

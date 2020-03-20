@@ -2,18 +2,37 @@
 <html>
     <head>
         <title>Music Groups</title>
+        <link href="../static/css/availableGroups.css" type="text/css" rel="stylesheet">
     </head>
     <body>
+        <div class="nav">
+            <a href="/">We.J</a>
+            <a href="/createGroup">Create Group</a>
+            <a href="/savedSongs">Saved Songs</a>
+            <a href="/logout">Logout</a>
+        </div>
         {% if not activeGroups %}
             <center>There's nothing to see here 😥</center>
             <center>Create a group to get this party started!</center>
-        {% else %} 
-    		{% for group in activeGroups %}
-    			<p>{{group.name}} created by {{group.creatorUsername}}</p>
-    			<form action="/joinGroup/{{group.name}}" method="POST">
-                    <input style="background-color: red;" type="submit" value="Join Group">
-                </form>
-    		{% endfor %}
+        {% else %}
+        	<table id="groups">
+        		<tr>
+	        		<th>Group</th>
+	        		<th>Host</th>
+	        		<th>Join</th>
+	        	</tr>
+	    		{% for group in activeGroups %}
+	    			<tr>
+	    				<td>{{group.name}}</td>
+	    				<td>{{group.creatorUsername}}</td>
+	    				<td>    			
+	    					<form action="/joinGroup/{{group.name}}" method="POST">
+	                    		<input style="background-color: red;" type="submit" value="Join Group">
+	               			</form>
+	               		</td>
+	    			</tr>
+    			{% endfor %}
+    		</table>
         {% endif %}
     </body>
 </html>

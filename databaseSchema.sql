@@ -26,3 +26,13 @@ CREATE TABLE SavedSongs (
     PRIMARY KEY(email, songID), 
     FOREIGN KEY(email) REFERENCES User(email)
 );
+
+DROP TABLE IF EXISTS `RateGroup`;
+CREATE TABLE RateGroup (
+    email VARCHAR(25), 
+    groupName VARCHAR(25), 
+    rating TINYINT(1) UNSIGNED,
+    PRIMARY KEY(email, groupName), 
+    FOREIGN KEY(email) REFERENCES User(email),
+    FOREIGN KEY(groupName) REFERENCES MusicGroup(groupName)
+);   

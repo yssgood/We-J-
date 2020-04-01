@@ -51,9 +51,6 @@ $(document).ready(function() {
     $('#rateGroup').on('keypress', function(key) {
         if (key.keyCode == 13) {
             var rating = parseInt($('#rateGroup input').val());
-            console.log(rating);
-            console.log(Number.isInteger(rating));
-            console.log(!Number.isInteger(rating));
             if(!Number.isInteger(rating) || rating < 1 || rating > 5){
                 alert("Please enter an integer rating between 1 and 5.")
             }

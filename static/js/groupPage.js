@@ -123,8 +123,8 @@ $(document).ready(function() {
         });
     }
     setInterval(function() {
-        showMemberCount();
-        showRatingAverage();
+        //showMemberCount();
+        //showRatingAverage();
         showInputFieldToDJ();
     }, 1000);
 });

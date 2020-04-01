@@ -277,11 +277,7 @@ def leaveGroup(message):
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
 		 + session['username'] + ' left the group.'}, room=session['group'])
-
-@socketio.on('disconnect', namespace='/group')
-def disconnect():
-	print("Disconnected Client: " + request.sid)
-	leaveGroup(None)
+	session['group'] = None
 
 def getGroupObject(name):
 	for group in activeGroups:

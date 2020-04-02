@@ -9,23 +9,23 @@ from flask import Flask, redirect, render_template, request, session
 from modules.user import User
 from modules.group import Group
 
-app = Flask(__name__)
-app.secret_key = 'SomethingSuperSecretThatYoullNeverEverGuess'
+application = Flask(__name__)
+application.secret_key = 'SomethingSuperSecretThatYoullNeverEverGuess'
 
 socketio = SocketIO()
-socketio.init_app(app)
+socketio.init_app(application)
 
 activeGroups = []
 
-conn = pymysql.connect(host='localhost',
+conn = pymysql.connect(host='wej.ciugtayxwllm.us-east-1.rds.amazonaws.com',
 						port=3306,
-						user='root',
-						password='root',
+						user='admin',
+						password='wejadminpassword',
 						db='WEJ',
 						charset='utf8mb4',
 						cursorclass=pymysql.cursors.DictCursor)
 
-@app.route('/')
+@application.route('/')
 def index():
 	try:
 		session['email']
@@ -33,7 +33,7 @@ def index():
 	except:
 		return render_template('index.html')
 
-@app.route('/register')
+@application.route('/register')
 def register():
 	try:
 		session['email']
@@ -41,7 +41,7 @@ def register():
 	except:
 		return render_template('register.html')
 
-@app.route('/registerAuth', methods=['GET', 'POST'])
+@application.route('/registerAuth', methods=['GET', 'POST'])
 def registerAuth():
 	email = request.form['email']
 	username = request.form['username']
@@ -55,7 +55,7 @@ def registerAuth():
 		error = 'User already exists, enter another email'
 		return render_template('register.html', error=error)
 
-@app.route('/login')
+@application.route('/login')
 def login():
 	try:
 		session['email']
@@ -63,7 +63,7 @@ def login():
 	except:
 		return render_template('login.html')
 
-@app.route('/loginAuth', methods=['GET', 'POST'])
+@application.route('/loginAuth', methods=['GET', 'POST'])
 def loginAuth():
 	email = request.form['email']
 	password = request.form['password']
@@ -75,7 +75,7 @@ def loginAuth():
 		error = 'Incorrect Login, Please enter again'
 		return render_template('login.html', error=error)
 
-@app.route('/home')
+@application.route('/home')
 def home():
 	try:
 		session['email']
@@ -83,7 +83,7 @@ def home():
 	except:
 		return redirect('/login')
 
-@app.route('/createGroup')
+@application.route('/createGroup')
 def createGroup():
 	try:
 		session['email']
@@ -91,7 +91,7 @@ def createGroup():
 	except:
 		return render_template('login.html')
 
-@app.route('/createGroupAuth', methods=['GET', 'POST'])
+@application.route('/createGroupAuth', methods=['GET', 'POST'])
 def createGroupAuth():
 	email = session['email']
 	groupName = request.form['GroupName']
@@ -106,7 +106,7 @@ def createGroupAuth():
 		error = 'A group with this name already exists! Please try again.'
 		return render_template('createGroup.html', error=error)
 
-@app.route('/group')
+@application.route('/group')
 def group():
 	try:
 		session['email']
@@ -118,7 +118,7 @@ def group():
 	except:
 		return redirect('/login')
 
-@app.route('/joinGroup/<group>', methods=['GET', 'POST'])
+@application.route('/joinGroup/<group>', methods=['GET', 'POST'])
 def joinGroup(group):
 	try:
 		session['email']
@@ -127,7 +127,7 @@ def joinGroup(group):
 	except:
 		return redirect('/login')
 
-@app.route('/isDJ/<socketID>')
+@application.route('/isDJ/<socketID>')
 def isDJ(socketID):
 	try:
 		group = getGroupObject(session['group'])
@@ -148,7 +148,7 @@ def isDJ(socketID):
 			pass
 	return json.dumps({'isDJ': False})
 
-@app.route('/saveSong/<songID>', methods=['GET', 'POST'])
+@application.route('/saveSong/<songID>', methods=['GET', 'POST'])
 def saveSong(songID):
 	try:
 		if (songID == "0") or (User.checkForDuplicateSavedSong(session['email'], songID, conn)):
@@ -159,7 +159,7 @@ def saveSong(songID):
 	except:
 			return json.dumps({'savedSong': True})	
 
-@app.route('/getMemberCount')
+@application.route('/getMemberCount')
 def getMemberCount():
 	try:
 		group = getGroupObject(session['group'])
@@ -175,7 +175,7 @@ def getMemberCount():
 			pass
 	return jsonResponse
 
-@app.route('/getRatingAverage')
+@application.route('/getRatingAverage')
 def getRatingAverage():
 	try:
 		ratingSum = 0
@@ -285,7 +285,7 @@ def getGroupObject(name):
 			return group
 	return None
 
-@app.route('/availableGroups')
+@application.route('/availableGroups')
 def availableGroups():
 	try:
 		session['email']
@@ -294,29 +294,29 @@ def availableGroups():
 	except:
 		return redirect('/login')
 
-@app.route('/savedSongs')
+@application.route('/savedSongs')
 def getSavedSongs():
 	try:
 		return render_template('savedSongs.html', songs=User.getSavedSongs(session['email'], conn))
 	except:
 		return redirect('/login')
 
-@app.route('/logout')
+@application.route('/logout')
 def logout():
 	session.clear()
 	return redirect('/')
 
 #404 errorhandler
-@app.errorhandler(404)
+@application.errorhandler(404)
 def page_not_found(error):
 	#render template when 404 error occurs
 	return render_template('404error.html')
 
 #unauthorized access errorhandler
-@app.errorhandler(Exception)
+@application.errorhandler(Exception)
 def page_not_found(error):
 	#render template when unauthorized access error occurs
 	return render_template('unauthorizedAccess.html')
 
 if __name__ == '__main__':
-	socketio.run(app)
+	socketio.run(application)

@@ -9,7 +9,7 @@ class DJRotateThread(Thread):
 		self.mutex = Lock()
 
 	def run(self):
-		while not self.stop.wait(10):
+		while not self.stop.wait(120):
 			try:
 				self.mutex.acquire()
 				if len(self.clients) > 0:

@@ -9,18 +9,17 @@ from flask import Flask, redirect, render_template, request, session
 from modules.user import User
 from modules.group import Group
 
+activeGroups = []
+
 application = Flask(__name__)
 application.secret_key = 'SomethingSuperSecretThatYoullNeverEverGuess'
 
-socketio = SocketIO()
-socketio.init_app(application)
+socketio = SocketIO(application)
 
-activeGroups = []
-
-conn = pymysql.connect(host='wej.ciugtayxwllm.us-east-1.rds.amazonaws.com',
+conn = pymysql.connect(host='localhost',
 						port=3306,
-						user='admin',
-						password='wejadminpassword',
+						user='root',
+						password='root',
 						db='WEJ',
 						charset='utf8mb4',
 						cursorclass=pymysql.cursors.DictCursor)

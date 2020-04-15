@@ -1,3 +1,4 @@
+# Import libraries
 import json
 import datetime
 import pymysql.cursors
@@ -6,24 +7,31 @@ from urllib.parse import parse_qs, urlparse
 from flask_socketio import emit, join_room, leave_room, SocketIO
 from flask import Flask, redirect, render_template, request, session
 
+# Import modules
 from modules.user import User
 from modules.group import Group
 
+# List of active music groups
 activeGroups = []
 
+# Initialize Flask application
 application = Flask(__name__)
 application.secret_key = 'SomethingSuperSecretThatYoullNeverEverGuess'
 
+# Initialize SocketIO application
 socketio = SocketIO(application)
 
-conn = pymysql.connect(host='localhost',
-						port=3306,
-						user='root',
-						password='root',
+# Configure MySQL
+conn = pymysql.connect(host='localhost', 
+						port=3306, # Change to your MySQL port
+						user='root', # Change to your MySQL user
+						password='root', # Change to your MySQL password
 						db='WEJ',
 						charset='utf8mb4',
 						cursorclass=pymysql.cursors.DictCursor)
 
+# Define route for index which is displayed to non-authenticated users
+# Authenticated users are redirected to home page
 @application.route('/')
 def index():
 	try:
@@ -32,6 +40,8 @@ def index():
 	except:
 		return render_template('index.html')
 
+# Define route for register
+# Authenticated users are redirected to home page
 @application.route('/register')
 def register():
 	try:
@@ -40,6 +50,9 @@ def register():
 	except:
 		return render_template('register.html')
 
+# Authenticates the register
+# Create a new user in the database if the user does not exist already
+# Otherwise user exists already
 @application.route('/registerAuth', methods=['GET', 'POST'])
 def registerAuth():
 	email = request.form['email']
@@ -54,6 +67,8 @@ def registerAuth():
 		error = 'User already exists, enter another email'
 		return render_template('register.html', error=error)
 
+# Define route for login
+# Authenticated users are redirected to home page
 @application.route('/login')
 def login():
 	try:
@@ -62,6 +77,9 @@ def login():
 	except:
 		return render_template('login.html')
 
+# Authenticates the login
+# Login the user by validating credentials in database
+# Otherwise login failed
 @application.route('/loginAuth', methods=['GET', 'POST'])
 def loginAuth():
 	email = request.form['email']
@@ -74,6 +92,8 @@ def loginAuth():
 		error = 'Incorrect Login, Please enter again'
 		return render_template('login.html', error=error)
 
+# Define route for home
+# Unauthenticated users are asked to login
 @application.route('/home')
 def home():
 	try:
@@ -82,6 +102,8 @@ def home():
 	except:
 		return redirect('/login')
 
+# Define route for createGroup
+# Authenticated users can access the create music group page
 @application.route('/createGroup')
 def createGroup():
 	try:
@@ -90,6 +112,9 @@ def createGroup():
 	except:
 		return render_template('login.html')
 
+# Authenticates the createGroup
+# Create a new music group in the database if it does not exist already
+# Otherwise music group already exists
 @application.route('/createGroupAuth', methods=['GET', 'POST'])
 def createGroupAuth():
 	email = session['email']
@@ -105,6 +130,9 @@ def createGroupAuth():
 		error = 'A group with this name already exists! Please try again.'
 		return render_template('createGroup.html', error=error)
 
+# Define route for group
+# Authenticated users can see the list of current music groups
+# Otherwise users are asked to login
 @application.route('/group')
 def group():
 	try:
@@ -117,6 +145,9 @@ def group():
 	except:
 		return redirect('/login')
 
+# Define route for joinGroup
+# Authenticated users are directed to the group they joined
+# Otherwise asked to login
 @application.route('/joinGroup/<group>', methods=['GET', 'POST'])
 def joinGroup(group):
 	try:
@@ -126,6 +157,8 @@ def joinGroup(group):
 	except:
 		return redirect('/login')
 
+# Define route for isDJ
+# Checking if the current user is the DJ of that group
 @application.route('/isDJ/<socketID>')
 def isDJ(socketID):
 	try:
@@ -147,6 +180,8 @@ def isDJ(socketID):
 			pass
 	return json.dumps({'isDJ': False})
 
+# Define route for saveSong
+# Saves the current song that is playing to the user's own list
 @application.route('/saveSong/<songID>', methods=['GET', 'POST'])
 def saveSong(songID):
 	try:
@@ -158,6 +193,8 @@ def saveSong(songID):
 	except:
 			return json.dumps({'savedSong': True})	
 
+# Define route for getMemberCount
+# Gets the total number of members in a group
 @application.route('/getMemberCount')
 def getMemberCount():
 	try:
@@ -174,6 +211,8 @@ def getMemberCount():
 			pass
 	return jsonResponse
 
+# Define route for getRatingAverage
+# Returns the average rating of the group
 @application.route('/getRatingAverage')
 def getRatingAverage():
 	try:
@@ -187,6 +226,7 @@ def getRatingAverage():
 	except:
 		return json.dumps({'averageRating': -1})
 
+# Authenticated users join the group they want and are directed to the page
 @socketio.on('joinGroup', namespace='/group')
 def joinGroup(message):
 	try:
@@ -208,12 +248,14 @@ def joinGroup(message):
 	if group.getCurrentSong():
 		emit('video', {'msg': group.getCurrentSong()}, room=request.sid)
 
+# Used to send messages in the group page chat
 @socketio.on('sendMessage', namespace='/group')
 def sendMessage(message):
 	emit('update',
 		 {'msg': datetime.datetime.now().strftime('[%I:%M:%S %p] ')
 		 + session['username'] + ': ' + message['msg']}, room=session['group'])
 
+# Used to fetch the song through YouTube
 @socketio.on('fetchSong', namespace='/group')
 def fetchSong(message):
 	try:
@@ -230,6 +272,7 @@ def fetchSong(message):
 	except:
 		pass
 
+# Used to rate the group
 @socketio.on('rateGroup', namespace='/group')
 def rateGroupRating(message):
 	try:
@@ -237,6 +280,7 @@ def rateGroupRating(message):
 	except:
 		pass
 
+# Used to report a problem to the support team
 @socketio.on('reportProblem', namespace='/group')
 def reportProblem(message):
 	try:
@@ -253,6 +297,7 @@ def reportProblem(message):
 	except:
 		pass
 
+# Used to leave the music group session
 @socketio.on('leaveGroup', namespace='/group')
 def leaveGroup(message):
 	try:
@@ -278,12 +323,16 @@ def leaveGroup(message):
 		 + session['username'] + ' left the group.'}, room=session['group'])
 	session['group'] = None
 
+# Find a specific group that is currently active
 def getGroupObject(name):
 	for group in activeGroups:
 		if group.getName() == name:
 			return group
 	return None
 
+# Define route for availableGroups
+# Authenticated users can see a list of groups they can join
+# Otherwise asked to login
 @application.route('/availableGroups')
 def availableGroups():
 	try:
@@ -293,6 +342,9 @@ def availableGroups():
 	except:
 		return redirect('/login')
 
+# Define route for savedSongs
+# Authenticated users can see a list of their saved songs
+# Otherwise asked to login
 @application.route('/savedSongs')
 def getSavedSongs():
 	try:
@@ -300,6 +352,8 @@ def getSavedSongs():
 	except:
 		return redirect('/login')
 
+# Define route for logout
+# Logs the user out
 @application.route('/logout')
 def logout():
 	session.clear()
@@ -317,5 +371,6 @@ def page_not_found(error):
 	#render template when unauthorized access error occurs
 	return render_template('unauthorizedAccess.html')
 
+# Running the application
 if __name__ == '__main__':
 	socketio.run(application)

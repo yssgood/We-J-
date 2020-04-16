@@ -1,2 +1,15 @@
 # We.J
 An application that allows users to take turns sharing songs within music genre groups
+
+### Building and Deploying
+
+We assume that the user will be running the application on a suitable, modern web browser including: Chrome, Firefox, Edge. We also assume that the user has Python 3.7.4 and MySQL installed.
+
+For database creation, run the SQL code found in databaseSchema.sql on the MySQL server. For the
+admin username use “**root**”, for the password use “**root**”, and for the port use **3306**. If you have already created an admin username and password for your MySQL Server, edit the application.py (lines 26, 27, 28) and fill in your credentials.
+
+For deploying the application locally, we first need to install the packages found in requirements.txt. In the We.J directory, run the command “**pip install -r requirements.txt**”. Finally, run “**python application.py**” to locally deploy the application. The application can be accessed from a browser by pointing it to localhost:5000.
+
+### User Documentation and Demonstration
+
+Please see */documentation/We.J User Documentation.pdf* and */documentation/We.J Video.mp4* for more information.

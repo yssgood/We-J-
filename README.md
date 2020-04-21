@@ -1,5 +1,7 @@
 # We.J
-An application that allows users to take turns sharing songs within music genre groups
+An application that allows users to take turns sharing songs within music genre groups.
+
+**GitHub Repository: https://github.com/arnavshah30/We.J**
 
 ### Building and Deploying
 
@@ -12,4 +14,4 @@ For deploying the application locally, we first need to install the packages fou
 
 ### User Documentation and Demonstration
 
-Please see */documentation/We.J User Documentation.pdf* and */documentation/We.J Video.mp4* for more information.
+Please see [**We.J User Documentation**](./documentation/We.J%20User%20Documentation.pdf) and [**We.J Video**](./documentation/We.J%20Video.mp4) for more information.

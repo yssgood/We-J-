@@ -37,16 +37,10 @@ class User:
 		cursor.execute(query, (email))
 		data = cursor.fetchone()
 		cursor.close()
-		return data['username']
-
-	@staticmethod
-	def checkForDuplicateSavedSong(email, songID, conn):
-		cursor = conn.cursor()
-		query = 'SELECT * FROM SavedSongs WHERE email = %s AND songID = %s LIMIT 1'
-		cursor.execute(query, (email, songID))
-		data = cursor.fetchone()
-		cursor.close()
-		return data
+		try:
+			return data['username']
+		except:
+			return None
 
 	@staticmethod
 	def saveSong(email, songID, conn):
@@ -62,5 +56,14 @@ class User:
 		query = 'SELECT * FROM SavedSongs WHERE email = %s'
 		cursor.execute(query, (email))
 		data = cursor.fetchall()
+		cursor.close()
+		return data
+
+	@staticmethod
+	def checkForDuplicateSavedSong(email, songID, conn):
+		cursor = conn.cursor()
+		query = 'SELECT * FROM SavedSongs WHERE email = %s AND songID = %s LIMIT 1'
+		cursor.execute(query, (email, songID))
+		data = cursor.fetchone()
 		cursor.close()
 		return data

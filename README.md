@@ -1,19 +1,24 @@
 # We.J
-An application that allows users to take turns sharing songs within music genre groups.
 
-### Building and Deploying
+### 추가설명:
+We.J 프로젝트는 다양한 유저들이 모여 장르에 맞는 음악을 방에 DJ가 되어 턴을 번갈아가며 공유하고 서로 채팅할수있는 음악사이트며 프로젝트 진행은 저와 같은 NYU 컴퓨터 공학과 졸업생 3명과 함께 하였습니다. 데이터베이스는 MySQL 을 썼고 주로 사용된 프로그램은 Python이지만 웹디자인은 HTML과 CSS를 사용하였고 thread를 사용하기 위해 JavaScript 또한 사용되었습니다. 
 
-We assume that the user will be running the application on a suitable, modern web browser including: Chrome, Firefox, Edge. We also assume that the user has Python 3.7.4 and MySQL installed.
+프로그램을 실행시키기 위해선 [**application.py**]가 필요하고 테스팅을 위해서는 [**test_modules.py**] 필요합니다. 프로그램 실행을 위한 모든 라이브러리가 있는지 확인하기 위해선 [**requirements.txt**] 참고하시길 바랍니다. 
 
-For database creation, run the SQL code found in [**databaseSchema.sql**](./databaseSchema.sql) on the MySQL server. For the
-admin username use “**root**”, for the password use “**root**”, and for the port use **3306**. If you have already created an admin username and password for your MySQL Server, edit the application.py (lines 26, 27, 28) and fill in your credentials.
+### 상세 업무 및 성과: 
 
-For deploying the application locally, we first need to install the packages found in requirements.txt. In the We.J directory, run the command “**pip install -r requirements.txt**”. Finally, run “**python application.py**” to locally deploy the application. The application can be accessed from a browser by pointing it to localhost:5000.
+1. 백앤드 및 보안 담당
+2. MySQL을 이용한 효율적인 유저 데이터베이스 관리를 구축 
+3. Python Flask와 JavaScript의 thread를 이용해 유저 사이에 채팅기능과 음악쉐어링을 2분마다 턴으로 번갈아 가며 쉐어할수있는 기능완성
+4. HTML 과 CSS를 사용한 기본적인 웹디자인 설계
 
-### Testing
+### 배운점: 
 
-In [**test_modules.py**](./tests/test_modules.py), change lines 10, 11, and 12 to your MySQL credentials. Navigate the terminal to the **tests** directory. Then run “**pytest**” to automatically run the tests (ensure that all required libraries from [**requirements.txt**](./requirements.txt) are already installed)
+1. 프론트앤드를 사용한 완전한 웹사이트 구축 
+2. JavaScript를 사용한 효율적인 thread 사용 
+3. Database Schema 디자인의 대한 이해 
+4. 개인이 아닌 팀으로서의 업무책임 
+5. 팀과의 소통의 중요성 
 
-### User Documentation and Demonstration
-
-Please see [**We.J User Documentation**](./documentation/We.J%20User%20Documentation.pdf) and [**We.J Video**](./documentation/We.J%20Video.mp4) for more information.
+### We.J 프로젝트 실행영상 및 설명 (영어): 
+https://www.youtube.com/watch?v=UfcrujHvGDg

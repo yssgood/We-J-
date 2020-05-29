@@ -1,8 +1,6 @@
 # We.J
 An application that allows users to take turns sharing songs within music genre groups.
 
-**GitHub Repository: https://github.com/arnavshah30/We.J**
-
 ### Building and Deploying
 
 We assume that the user will be running the application on a suitable, modern web browser including: Chrome, Firefox, Edge. We also assume that the user has Python 3.7.4 and MySQL installed.

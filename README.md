@@ -18,6 +18,3 @@ We.J 프로젝트는 다양한 유저들이 모여 장르에 맞는 음악을 �
 2. Database Schema 디자인의 대한 이해 
 3. 개인이 아닌 팀으로서의 업무책임 
 4. 팀과의 소통의 중요성 
-
-### We.J 프로젝트 실행영상 및 설명 (영어): 
-https://www.youtube.com/watch?v=UfcrujHvGDg
